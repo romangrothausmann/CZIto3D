@@ -65,5 +65,5 @@ all.thumbs : slides/ all.info
 
 all.coords : slides/ all.thumbs
 	ls $</*.png \
-	| parallel --eta -j2 '$(MAKE) -j1 {}.txt &> /dev/null' # -j2 needs disabled "multi instant listener" under Edit->Options->Misc
+	| parallel --eta -j1 '$(MAKE) -j1 {}.txt &> /dev/null' # -j2 needs disabled "multi instant listener" under Edit->Options->Misc
 	touch $@
