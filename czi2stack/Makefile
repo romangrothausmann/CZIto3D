@@ -38,8 +38,8 @@ all : all.thumbs
 	| awk -f $(BINDIR)/sceneInfo.awk > $@
 
 %.th : %.czi %.info
-	cut -d' ' -f5 $(lastword $^) \
-	| parallel --eta -j1 -u ' \
+	-cut -d' ' -f5 $(lastword $^) \
+	| parallel --eta -j1 --retries 3 -u ' \
 		BF_MAX_MEM=10g  \
 		bfconvert -no-upgrade -overwrite -series {} $< $*_s{}.png  &> $*_s{}.out '
 	touch $@
@@ -51,5 +51,5 @@ all.info : slides/
 
 all.thumbs : slides/ all.info
 	ls $</*.czi \
-	| parallel --eta -j$(JOBS) -u '$(MAKE) -j1 {.}.th  &> /dev/null'
+	| parallel --eta -j$(JOBS) -u '$(MAKE) -j1 {.}.th  &> {.}.out'
 	touch $@
