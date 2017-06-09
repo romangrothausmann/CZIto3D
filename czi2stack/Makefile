@@ -16,7 +16,7 @@ BF?=/opt/bio-format_CLIs/
 
 export PATH:= $(BF):$(PATH)
 
-EXECUTABLES = showinf
+EXECUTABLES = showinf bfconvert
 EXECUTABLES+= parallel
 
 K:= $(foreach exec,$(EXECUTABLES),\
@@ -28,7 +28,7 @@ JOBS = 32
 .PHONY : all clean
 
 
-all : all.info
+all : all.thumbs
 
 
 
@@ -37,7 +37,19 @@ all : all.info
 	showinf  -option zeissczi.attachments false  -no-upgrade -nopix $< \
 	| awk -f $(BINDIR)/sceneInfo.awk > $@
 
+%.th : %.czi %.info
+	cut -d' ' -f5 $(lastword $^) \
+	| parallel --eta -j1 -u ' \
+		BF_MAX_MEM=10g  \
+		bfconvert -no-upgrade -overwrite -series {} $< $*_s{}.png  &> $*_s{}.out '
+	touch $@
+
 all.info : slides/
 	ls $</*.czi \
-	| parallel --eta -j$(JOBS) -u '$(MAKE) -j1 {.}.info  1> /dev/null'
+	| parallel --eta -j$(JOBS) -u '$(MAKE) -j1 {.}.info  &> /dev/null'
+	touch $@
+
+all.thumbs : slides/ all.info
+	ls $</*.czi \
+	| parallel --eta -j$(JOBS) -u '$(MAKE) -j1 {.}.th  &> /dev/null'
 	touch $@
