@@ -49,7 +49,7 @@ all : all.coords
 	| awk -f $(BINDIR)/sceneInfo.awk > $@
 
 %.th : %.czi %.info
-	-cut -d' ' -f5 $(lastword $^) \
+	-cut -d' ' -f7 $(lastword $^) \
 	| parallel --eta -j1 --retries 3 -u ' \
 		BF_MAX_MEM=10g  \
 		bfconvert -no-upgrade -overwrite -series {} $< $*_s{}.png  &> $*_s{}.out '
@@ -82,13 +82,13 @@ all.coords : slides/ all.thumbs
 %.slices : $$(call base_,%).czi $$(call base_,%).info %.png.txt
 	@echo "process $+ to $*"
 	$(eval pos= $(subst $(basename $<),,$*))
-	echo $(pos)
 	$(eval pos= $(subst _s,,$(pos)))
-	$(eval s= $(shell awk '$$5==$(pos){print 2^($$6 - 1)}' $(word 2,$^)))
-	$(eval S= $(shell awk '$$5==$(pos){print $$4}' $(word 2,$^)))
-	$(eval W= $(shell awk '$$5==$(pos){print $$2}' $(word 2,$^)))
-	echo $(pos) $(s)
-	awk  'NR>2 { printf("%d,%d,$(w),$(h) %02d\n", $$1*$(s)-($(w)/2) < 0 ? 0 : $$1*$(s)-($(w)/2) > $(W)-$(w) ? $(W)-$(w) : $$1*$(s)-($(w)/2), $$2*$(s)-($(h)/2) < 0 ? 0 : $$2*$(s)-($(h)/2), NR-2 ) }' $(lastword $^) \
+	$(eval s= $(shell awk '$$7==$(pos){print 2^($$8 - 1)}' $(word 2,$^)))
+	$(eval S= $(shell awk '$$7==$(pos){print $$6}' $(word 2,$^)))
+	$(eval W= $(shell awk '$$7==$(pos){print $$2}' $(word 2,$^)))
+	$(eval H= $(shell awk '$$7==$(pos){print $$3}' $(word 2,$^)))
+	echo $(pos) $(s) $(S) $(W) $(H)
+	awk  'NR>2 { printf("%d,%d,$(w),$(h) %02d\n", $$1*$(s)-($(w)/2) < 0 ? 0 : $$1*$(s)-($(w)/2) > $(W)-$(w) ? $(W)-$(w) : $$1*$(s)-($(w)/2), $$2*$(s)-($(h)/2) < 0 ? 0 : $$2*$(s)-($(h)/2) > $(H)-$(h) ? $(H)-$(h) : $$2*$(s)-($(h)/2), NR-2 ) }' $(lastword $^) \
 	| parallel --colsep ' ' --eta -j$(JOBS) -u ' \
 		BF_MAX_MEM=10g  \
 		bfconvert -no-upgrade -overwrite -series $(S) -crop {1} $< $*_{2}.png   &> $*_{2}.out'
