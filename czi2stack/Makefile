@@ -7,6 +7,11 @@
 
 SHELL:= /bin/bash
 
+SPACE := $(eval) $(eval)
+base_ = $(subst $(SPACE),_,$(filter-out $(lastword $(subst _, ,$1)),$(subst _, ,$1)))
+base. = $(subst $(SPACE),.,$(filter-out $(lastword $(subst ., ,$1)),$(subst ., ,$1)))
+
+
 BINDIR?=../bin
 
 
@@ -27,6 +32,9 @@ K:= $(foreach exec,$(EXECUTABLES),\
 
 
 JOBS = 32
+
+w=7000
+h=7000
 
 .PHONY : all clean
 
@@ -53,6 +61,7 @@ all : all.coords
 #	echo "macro 'quit [q]' {run('Quit')}" >> Fiji.app/macros/StartupMacros.fiji.ijm
 	ImageJ-linux64 --allow-multiple --memory=20g --java-home /usr/lib/jvm/java-7-openjdk-amd64/jre  $< # put export_multipointset.ijm in /opt/fiji/Fiji.app/plugins/ and short-cut to e.g. F2
 
+
 all.info : slides/
 	ls $</*.czi \
 	| parallel --eta -j$(JOBS) -u '$(MAKE) -j1 {.}.info  &> /dev/null'
@@ -66,4 +75,20 @@ all.thumbs : slides/ all.info
 all.coords : slides/ all.thumbs
 	ls $</*.png \
 	| parallel --eta -j1 '$(MAKE) -j1 {}.txt &> /dev/null' # -j2 needs disabled "multi instant listener" under Edit->Options->Misc
+	touch $@
+
+.SECONDEXPANSION:
+
+%.slices : $$(call base_,%).czi $$(call base_,%).info %.png.txt
+	@echo "process $+ to $*"
+	$(eval pos= $(subst $(basename $<),,$*))
+	echo $(pos)
+	$(eval pos= $(subst _s,,$(pos)))
+	$(eval s= $(shell awk '$$5==$(pos){print 2^($$6 - 1)}' $(word 2,$^)))
+	$(eval S= $(shell awk '$$5==$(pos){print $$4}' $(word 2,$^)))
+	echo $(pos) $(s)
+	awk  'NR>2 { printf("%d,%d,$(w),$(h) %02d\n", $$1*$(s)-($(w)/2) < 0 ? 0 : $$1*$(s)-($(w)/2), $$2*$(s)-($(h)/2) < 0 ? 0 : $$2*$(s)-($(h)/2), NR-2 ) }' $(lastword $^) \
+	| parallel --colsep ' ' --eta -j$(JOBS) -u ' \
+		BF_MAX_MEM=10g  \
+		bfconvert -no-upgrade -overwrite -series $(S) -crop {1} $< $*_{2}.png   &> $*_{2}.out'
 	touch $@
