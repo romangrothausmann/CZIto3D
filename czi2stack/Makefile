@@ -33,8 +33,8 @@ K:= $(foreach exec,$(EXECUTABLES),\
 
 JOBS = 32
 
-w=7000
-h=7000
+w=8000
+h=8000
 
 .PHONY : all clean
 
@@ -86,8 +86,9 @@ all.coords : slides/ all.thumbs
 	$(eval pos= $(subst _s,,$(pos)))
 	$(eval s= $(shell awk '$$5==$(pos){print 2^($$6 - 1)}' $(word 2,$^)))
 	$(eval S= $(shell awk '$$5==$(pos){print $$4}' $(word 2,$^)))
+	$(eval W= $(shell awk '$$5==$(pos){print $$2}' $(word 2,$^)))
 	echo $(pos) $(s)
-	awk  'NR>2 { printf("%d,%d,$(w),$(h) %02d\n", $$1*$(s)-($(w)/2) < 0 ? 0 : $$1*$(s)-($(w)/2), $$2*$(s)-($(h)/2) < 0 ? 0 : $$2*$(s)-($(h)/2), NR-2 ) }' $(lastword $^) \
+	awk  'NR>2 { printf("%d,%d,$(w),$(h) %02d\n", $$1*$(s)-($(w)/2) < 0 ? 0 : $$1*$(s)-($(w)/2) > $(W)-$(w) ? $(W)-$(w) : $$1*$(s)-($(w)/2), $$2*$(s)-($(h)/2) < 0 ? 0 : $$2*$(s)-($(h)/2), NR-2 ) }' $(lastword $^) \
 	| parallel --colsep ' ' --eta -j$(JOBS) -u ' \
 		BF_MAX_MEM=10g  \
 		bfconvert -no-upgrade -overwrite -series $(S) -crop {1} $< $*_{2}.png   &> $*_{2}.out'
