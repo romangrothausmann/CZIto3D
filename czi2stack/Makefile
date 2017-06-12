@@ -49,10 +49,10 @@ all : all.coords
 	| awk -f $(BINDIR)/sceneInfo.awk > $@
 
 %.th : %.czi %.info
-	awk '{printf("%02d\n", $$7)}' $(lastword $^) \
-	| parallel --eta -j1 --retries 3 -u ' \
+	awk '{printf("%02d %02d\n", $$7, $$1)}' $(lastword $^) \
+	| parallel --colsep ' ' --eta -j1 --retries 3 -u ' \
 		BF_MAX_MEM=10g  \
-		bfconvert -no-upgrade -overwrite -series {} $< $*_s{}.png  &> $*_s{}.out '
+		bfconvert -no-upgrade -overwrite -series {1} $< $*_s{2}.png  &> $*_s{2}.out '
 	touch $@
 
 %.png.txt : %.png # output from modified export_multipointset.ijm
@@ -83,10 +83,10 @@ all.coords : slides/ all.thumbs
 	@echo "process $+ to $*"
 	$(eval pos= $(subst $(basename $<),,$*))
 	$(eval pos= $(subst _s,,$(pos)))
-	$(eval s= $(shell awk '$$7==$(pos){print 2^($$8 - 1)}' $(word 2,$^)))
-	$(eval S= $(shell awk '$$7==$(pos){print $$6}' $(word 2,$^)))
-	$(eval W= $(shell awk '$$7==$(pos){print $$2}' $(word 2,$^)))
-	$(eval H= $(shell awk '$$7==$(pos){print $$3}' $(word 2,$^)))
+	$(eval s= $(shell awk '$$1==$(pos){print 2^($$8 - 1)}' $(word 2,$^)))
+	$(eval S= $(shell awk '$$1==$(pos){print $$6}' $(word 2,$^)))
+	$(eval W= $(shell awk '$$1==$(pos){print $$2}' $(word 2,$^)))
+	$(eval H= $(shell awk '$$1==$(pos){print $$3}' $(word 2,$^)))
 	echo $(pos) $(s) $(S) $(W) $(H)
 	awk  'NR>2 { printf("%d,%d,$(w),$(h) %02d\n", $$1*$(s)-($(w)/2) < 0 ? 0 : $$1*$(s)-($(w)/2) > $(W)-$(w) ? $(W)-$(w) : $$1*$(s)-($(w)/2), $$2*$(s)-($(h)/2) < 0 ? 0 : $$2*$(s)-($(h)/2) > $(H)-$(h) ? $(H)-$(h) : $$2*$(s)-($(h)/2), NR-2 ) }' $(lastword $^) \
 	| parallel --colsep ' ' --eta -j$(JOBS) -u ' \
