@@ -49,7 +49,7 @@ all : all.coords
 	| awk -f $(BINDIR)/sceneInfo.awk > $@
 
 %.th : %.czi %.info
-	-cut -d' ' -f7 $(lastword $^) \
+	awk '{printf("%02d\n", $$7)}' $(lastword $^) \
 	| parallel --eta -j1 --retries 3 -u ' \
 		BF_MAX_MEM=10g  \
 		bfconvert -no-upgrade -overwrite -series {} $< $*_s{}.png  &> $*_s{}.out '
