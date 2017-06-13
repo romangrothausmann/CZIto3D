@@ -39,7 +39,7 @@ h=8000
 .PHONY : all clean
 
 
-all : all.coords
+all : all.slices
 
 
 
@@ -52,14 +52,15 @@ all : all.coords
 	-awk '{printf("%02d %02d\n", $$7, $$1)}' $(lastword $^) \
 	| parallel --colsep ' ' --eta -j1 --retries 3 -u ' \
 		BF_MAX_MEM=10g  \
-		bfconvert -no-upgrade -overwrite -series {1} $< $*_s{2}.png  &> $*_s{2}.out '
+		bfconvert -no-upgrade -overwrite -series {1} $< $*_s{2}.tif  &> $*_s{2}.out '
 	touch $@
 
-%.png.txt : %.png # output from modified export_multipointset.ijm
+%.ctr : %.tif # output from modified export_multipointset.ijm
 #	echo "macro 'Multi-point [f1]' {setTool('multipoint')}" >> Fiji.app/macros/StartupMacros.fiji.ijm  # https://imagej.nih.gov/ij/docs/guide/146-35.html#sub:Tools-shortcuts
 #	echo "macro 'export_multipointset [f2]' {run('export multipointset')}" >> Fiji.app/macros/StartupMacros.fiji.ijm
 #	echo "macro 'quit [q]' {run('Quit')}" >> Fiji.app/macros/StartupMacros.fiji.ijm
 	ImageJ-linux64 --allow-multiple --memory=20g --java-home /usr/lib/jvm/java-7-openjdk-amd64/jre  $< # put export_multipointset.ijm in /opt/fiji/Fiji.app/plugins/ and short-cut to e.g. F2
+	mv $*.tif.txt $@
 
 
 all.info : slides/
@@ -68,18 +69,23 @@ all.info : slides/
 	touch $@
 
 all.thumbs : slides/ all.info
-	ls $</*.czi \
+	ls $</*.info \
 	| parallel --eta -j$(JOBS) -u '$(MAKE) -j1 {.}.th  &> {.}.out'
 	touch $@
 
 all.coords : slides/ all.thumbs
-	ls $</*.png \
-	| parallel --eta -j1 '$(MAKE) -j1 {}.txt &> /dev/null' # -j2 needs disabled "multi instant listener" under Edit->Options->Misc
+	ls $</*.tif \
+	| parallel --eta -j1 '$(MAKE) -j1 {.}.ctr &> /dev/null' # -j2 needs disabled "multi instant listener" under Edit->Options->Misc
+	touch $@
+
+all.slices : slides/ all.coords
+	ls $</*.ctr \
+	| parallel --eta -j3 '$(MAKE) -j1 {.}.slices &> {}.slices.out' # -j3 becuase %.slices already mostly runs multiple instances of  bfconvert that are at least dual-threaded
 	touch $@
 
 .SECONDEXPANSION:
 
-%.slices : $$(call base_,%).czi $$(call base_,%).info %.png.txt
+%.slices : $$(call base_,%).czi $$(call base_,%).info %.ctr
 	@echo "process $+ to $*"
 	$(eval pos= $(subst $(basename $<),,$*))
 	$(eval pos= $(subst _s,,$(pos)))
