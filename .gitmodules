@@ -1,0 +1,3 @@
+[submodule "submodules/elastix"]
+	path = submodules/elastix
+	url = https://github.com/romangrothausmann/elastix_scripts.git
