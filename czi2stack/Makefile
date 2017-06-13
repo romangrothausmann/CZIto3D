@@ -13,6 +13,7 @@ base. = $(subst $(SPACE),.,$(filter-out $(lastword $(subst ., ,$1)),$(subst ., ,
 
 
 BINDIR?=../bin
+SUBMODDIR?=../submodules/
 
 
 ### setting default paths of external programs
@@ -45,7 +46,7 @@ h=8000
 .PHONY : all clean
 
 
-all : all.slices
+all : reg/
 
 
 
@@ -70,6 +71,10 @@ all : all.slices
 		mv $*.tif.txt $@ ; \
 		$(MAKE) -j1 $*.slices & \
 	fi
+
+reg/ : parameterFile.txt all.slices
+	PYTHONPATH=/opt/SimpleElastix-gd6eaa/lib/python/:$$PYTHONPATH \
+		python $(SUBMODDIR)/elastix/recRegStack.py "slides/*.png" reg/ parameterFile.txt
 
 all.info : slides/
 	ls $</*.czi \
