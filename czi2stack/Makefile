@@ -66,7 +66,10 @@ all : all.slices
 #	echo "macro 'export_multipointset [f2]' {run('export multipointset')}" >> Fiji.app/macros/StartupMacros.fiji.ijm
 #	echo "macro 'quit [q]' {run('Quit')}" >> Fiji.app/macros/StartupMacros.fiji.ijm
 	ImageJ-linux64 --allow-multiple --memory=20g --java-home /usr/lib/jvm/java-7-openjdk-amd64/jre  $< # put export_multipointset.ijm in /opt/fiji/Fiji.app/plugins/ and short-cut to e.g. F2
-	mv $*.tif.txt $@
+	-if test -s $*.tif.txt ; then \
+		mv $*.tif.txt $@ ; \
+		$(MAKE) -j1 $*.slices & \
+	fi
 
 all.info : slides/
 	ls $</*.czi \
