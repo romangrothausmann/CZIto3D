@@ -40,8 +40,8 @@ mogrifyIM:= mogrify -define png:exclude-chunks=date,time +set date:create +set d
 
 JOBS = 32
 
-w=8000
-h=8000
+w=4000
+h=4000
 
 .PHONY : all clean
 
