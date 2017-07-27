@@ -46,7 +46,7 @@ h=4000
 .PHONY : all clean
 
 
-all : reg/
+all : slides/reg/
 
 
 
@@ -72,9 +72,10 @@ all : reg/
 		$(MAKE) -j1 $*.slices & \
 	fi
 
-reg/ : parameterFile.txt all.slices
+slides/reg/ : parameterFile.txt all.slices
+	cd slides/ && \
 	PYTHONPATH=/opt/SimpleElastix-gd6eaa/lib/python/:$$PYTHONPATH \
-		python $(SUBMODDIR)/elastix/recRegStack.py "slides/*.png" reg/ parameterFile.txt
+		python ../$(SUBMODDIR)/elastix/recRegStack.py "*.png" reg/ parameterFile.txt | tee recRegStack.out
 
 all.info : slides/
 	ls $</*.czi \
