@@ -72,10 +72,13 @@ all : slides/reg/
 		$(MAKE) -j1 $*.slices & \
 	fi
 
-slides/reg/ : parameterFile.txt all.slices
-	cd slides/ && \
+slides/slideOrder.lst : slides/ all.slices
+	ls -1 slides/*.png | sed 's|.*/||' > $@
+
+slides/ord/reg/ : parameterFile.txt all.slicesOrdered
+	cd slides/ord/ && \
 	PYTHONPATH=/opt/SimpleElastix-gd6eaa/lib/python/:$$PYTHONPATH \
-		python ../$(SUBMODDIR)/elastix/recRegStack.py "*.png" reg/ parameterFile.txt | tee recRegStack.out
+		python ../../$(SUBMODDIR)/elastix/recRegStack.py "*.png" reg/  ../../$< | tee recRegStack.out
 
 all.info : slides/
 	ls $</*.czi \
@@ -95,6 +98,12 @@ all.coords : slides/ all.thumbs
 all.slices : slides/ all.coords
 	ls $</*.ctr \
 	| parallel --eta -j3 '$(MAKE) -j1 {.}.slices &> {}.slices.out' # -j3 becuase %.slices already mostly runs multiple instances of  bfconvert that are at least dual-threaded
+	touch $@
+
+all.slicesOrdered : slides/slideOrder.lst
+	cd slides/ && \
+	mkdir -p ord/ && \
+	parallel --eta -j1 'ln -sf ../{} ord/`printf "%06d" {#}`_{}' :::: ../$<
 	touch $@
 
 .SECONDEXPANSION:
