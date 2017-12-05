@@ -46,7 +46,7 @@ h=4000
 .PHONY : all clean
 
 
-all : slides/reg/
+all : slides/ord/reg/
 
 
 
