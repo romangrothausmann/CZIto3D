@@ -55,6 +55,7 @@ all : slides/ord/reg/
 	showinf  -option zeissczi.attachments false  -no-upgrade -nopix $< \
 	| awk -f $(BINDIR)/sceneInfo.awk > $@
 
+# %_s%.tif \ # TIFs created indirectly:
 %.th : %.czi %.info
 	-awk '{printf("%02d %02d\n", $$7, $$1)}' $(lastword $^) \
 	| parallel --colsep ' ' --eta -j1 --retries 3 -u ' \
@@ -66,7 +67,7 @@ all : slides/ord/reg/
 #	echo "macro 'Multi-point [f1]' {setTool('multipoint')}" >> Fiji.app/macros/StartupMacros.fiji.ijm  # https://imagej.nih.gov/ij/docs/guide/146-35.html#sub:Tools-shortcuts
 #	echo "macro 'export_multipointset [f2]' {run('export multipointset')}" >> Fiji.app/macros/StartupMacros.fiji.ijm
 #	echo "macro 'quit [q]' {run('Quit')}" >> Fiji.app/macros/StartupMacros.fiji.ijm
-	ImageJ-linux64 --allow-multiple --memory=20g --java-home /usr/lib/jvm/java-7-openjdk-amd64/jre  $< # put export_multipointset.ijm in /opt/fiji/Fiji.app/plugins/ and short-cut to e.g. F2
+	ImageJ-linux64 --allow-multiple --memory=20g  $< # put export_multipointset.ijm in /opt/fiji/Fiji.app/plugins/ and short-cut to e.g. F2
 	-if test -s $*.tif.txt ; then \
 		mv $*.tif.txt $@ ; \
 		$(MAKE) -j1 $*.slices & \
