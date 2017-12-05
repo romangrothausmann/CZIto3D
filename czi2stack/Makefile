@@ -121,6 +121,5 @@ all.slicesOrdered : slides/slideOrder.lst
 	-awk  'NR>2 { printf("%d,%d,$(w),$(h) %02d\n", $$1*$(s)-($(w)/2) < 0 ? 0 : $$1*$(s)-($(w)/2) > $(W)-$(w) ? $(W)-$(w) : $$1*$(s)-($(w)/2), $$2*$(s)-($(h)/2) < 0 ? 0 : $$2*$(s)-($(h)/2) > $(H)-$(h) ? $(H)-$(h) : $$2*$(s)-($(h)/2), NR-2 ) }' $(lastword $^) \
 	| parallel --colsep ' ' --eta -j$(JOBS) --retries 3 -u ' \
 		BF_MAX_MEM=10g  \
-		bfconvert -no-upgrade -overwrite -series $(S) -crop {1} $< $*_{2}.png   &> $*_{2}.out && \
-		$(mogrifyIM) -set colorspace Gray -separate -average $*_{2}.png  &>> $*_{2}.out '
+		bfconvert -no-upgrade -overwrite -series $(S) -crop {1} $< $*_{2}.png   &> $*_{2}.out '
 	touch $@
