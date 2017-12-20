@@ -15,6 +15,9 @@ base. = $(subst $(SPACE),.,$(filter-out $(lastword $(subst ., ,$1)),$(subst ., ,
 BINDIR?=../bin
 SUBMODDIR?=../submodules/
 
+SE?=/opt/SimpleElastix/
+export PYTHONPATH=$(SE)/lib/python/
+
 
 ### setting default paths of external programs
 ## BF-5.5.1:
@@ -78,8 +81,7 @@ slides/slideOrder.lst : slides/ all.slices
 
 slides/ord/reg/ : parameterFile.txt all.slicesOrdered
 	cd slides/ord/ && \
-	PYTHONPATH=/opt/SimpleElastix-gd6eaa/lib/python/:$$PYTHONPATH \
-		python ../../$(SUBMODDIR)/elastix/recRegStack.py "*.png" reg/  ../../$< | tee recRegStack.out
+	python ../../$(SUBMODDIR)/elastix/recRegStack.py "*.png" reg/  ../../$< | tee recRegStack.out
 
 all.info : slides/
 	ls $</*.czi \
