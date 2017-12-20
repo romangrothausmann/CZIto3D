@@ -100,7 +100,7 @@ all.coords : slides/ all.thumbs
 
 all.slices : slides/ all.coords
 	ls $</*.ctr \
-	| parallel --eta -j3 '$(MAKE) -j1 {.}.slices &> {}.slices.out' # -j3 becuase %.slices already mostly runs multiple instances of  bfconvert that are at least dual-threaded
+	| parallel --eta -j16 '$(MAKE) -j1 {.}.slices &> {}.slices.out' # -j16 becuase %.slices already mostly runs multiple instances of  bfconvert that are at least dual-threaded
 	touch $@
 
 all.slicesOrdered : slides/slideOrder.lst
