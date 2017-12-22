@@ -81,7 +81,7 @@ slides/slideOrder.lst : slides/ all.slices
 
 slides/ord/reg/ : parameterFile.txt all.slicesOrdered
 	cd slides/ord/ && \
-	python ../../$(SUBMODDIR)/elastix/recRegStack.py "*.png" reg/  ../../$< | tee recRegStack.out
+	python ../../$(SUBMODDIR)/elastix/recRegStack.py -i "*.png" -o reg/ -p ../../$< | tee recRegStack.out
 
 all.info : slides/
 	ls $</*.czi \
