@@ -98,8 +98,8 @@ all.raw : slides/
 	ln -s ../$(RAWDIR)/CZIs/*.czi .
 	touch $@
 
-all.info : slides/
-	ls $</*.czi \
+all.info : slides/ all.raw
+	find $< -name '*.czi' -type l -not -xtype l `# https://stackoverflow.com/questions/11587737/how-do-i-get-a-list-of-symbolic-links-excluding-broken-links#11587876 ` \
 	| parallel --eta -j$(JOBS) -u '$(MAKE) -j1 {.}.info  &> /dev/null'
 	touch $@
 
