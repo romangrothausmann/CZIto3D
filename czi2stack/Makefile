@@ -46,11 +46,19 @@ JOBS = 32
 w=6000
 h=6000
 
-.PHONY : all clean
+.PHONY : all clean dist-clean
 
 
 all : slides/ord/reg/
 
+clean:
+	-cd slides/ && \
+	rm -v *.out *.czi *.info *.th *.tif *.slices *.png
+
+dist-clean : clean
+	-cd slides/ && \
+	rm -v *.ctr *.lst *.txt
+	-rm -rf slides/ord/
 
 
 %.info : %.czi
