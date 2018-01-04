@@ -43,6 +43,8 @@ mogrifyIM:= mogrify -define png:exclude-chunks=date,time +set date:create +set d
 
 JOBS = 32
 
+RAWDIR?= ../../raw/
+
 w=6000
 h=6000
 
@@ -90,6 +92,11 @@ slides/slideOrder.lst : slides/ all.slices
 slides/ord/reg/ : parameterFile.txt all.slicesOrdered
 	cd slides/ord/ && \
 	python ../../$(SUBMODDIR)/elastix/recRegStack.py -i "*.png" -o reg/ -p ../../$< | tee recRegStack.out
+
+all.raw : slides/
+	cd slides && \
+	ln -s ../$(RAWDIR)/CZIs/*.czi .
+	touch $@
 
 all.info : slides/
 	ls $</*.czi \
