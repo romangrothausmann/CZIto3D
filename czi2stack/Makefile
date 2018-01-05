@@ -156,7 +156,9 @@ slides/ord/%.xf : slides/ord/reg/%.tif # $$(call int_dec,%) ## gmsl function not
 	f=`find -name '*.tif' | grep -B1 slides/ord/reg/000005_17-296_0091_s01_01.tif | head -n1 | sed 's|reg/||' | sed 's/\\.tif//'` ; \
 	$(convertIM) $$f.png $$f.tif && \
 	tif2mrc $< $$f.tif $<.mrc && \
+	rm $$f.tif && \
 	$(VGLRUN) midas -D -s 0,3000 $<.mrc $@ # -D: do not run in background
+	rm $<.mrc # MRC only created for midas
 
 define BASE_TRA
 (CenterOfRotationPoint $(halfex) )
