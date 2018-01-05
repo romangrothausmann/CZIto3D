@@ -23,13 +23,16 @@ export PYTHONPATH=$(SE)/lib/python/
 ## BF-5.5.1:
 BF?=/opt/bio-format_CLIs/
 IJ?=/opt/fiji/Fiji.app/
+IMOD?=/opt/imod/IMOD/
 
 export PATH:= $(BF):$(PATH)
 export PATH:= $(IJ):$(PATH)
+export PATH:= $(IMOD)/bin:$(PATH)
 
 EXECUTABLES = showinf bfconvert
 EXECUTABLES+= parallel
 EXECUTABLES+= ImageJ-linux64
+EXECUTABLES+= tif2mrc midas
 EXECUTABLES+= convert mogrify
 
 K:= $(foreach exec,$(EXECUTABLES),\
@@ -140,3 +143,7 @@ all.slicesOrdered : slides/slideOrder.lst
 		BF_MAX_MEM=10g  \
 		bfconvert -no-upgrade -overwrite -series $(S) -crop {1} $< $*_{2}.png   &> $*_{2}.out '
 	touch $@
+
+slides/ord/%.txt : slides/ord/%.tif # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
+	tif2mrc $< `find -name '*.tif' | grep -B1 slides/ord/reg/000005_17-296_0091_s01_01.tif | head -n1 | sed 's|reg/||' | sed 's/\\.tif/.png/'` $<.mrc && \
+	midas -D $<.mrc $@ # -D: do not run in background
