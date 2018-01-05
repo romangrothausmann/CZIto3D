@@ -20,3 +20,5 @@
 !*.lst
 ## never ignore TXTs containing the result of man. inital ali.
 !*.txt
+## ignore *.log/IterationInfo.*.txt (part of *.log)
+IterationInfo.*.txt
