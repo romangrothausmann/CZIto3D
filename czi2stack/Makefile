@@ -35,7 +35,7 @@ EXECUTABLES = showinf bfconvert
 EXECUTABLES+= parallel
 EXECUTABLES+= ImageJ-linux64
 EXECUTABLES+= $(VGLRUN)
-EXECUTABLES+= tif2mrc midas
+EXECUTABLES+= tif2mrc midas xf2rotmagstr
 EXECUTABLES+= convert mogrify
 
 K:= $(foreach exec,$(EXECUTABLES),\
@@ -51,8 +51,13 @@ JOBS = 32
 
 RAWDIR?= ../../raw/
 
-w=6000
-h=6000
+
+include gmsl
+
+extent:=  6000 6000
+w=$(word 1, $(extent))
+h=$(word 2, $(extent))
+halfex:= $(call map,halve,$(extent))
 
 .PHONY : all clean dist-clean
 
@@ -147,8 +152,21 @@ all.slicesOrdered : slides/slideOrder.lst
 		bfconvert -no-upgrade -overwrite -series $(S) -crop {1} $< $*_{2}.png   &> $*_{2}.out '
 	touch $@
 
-slides/ord/%.txt : slides/ord/%.tif # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
+slides/ord/%.xf : slides/ord/reg/%.tif # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
 	f=`find -name '*.tif' | grep -B1 slides/ord/reg/000005_17-296_0091_s01_01.tif | head -n1 | sed 's|reg/||' | sed 's/\\.tif//'` ; \
 	$(convertIM) $$f.png $$f.tif && \
 	tif2mrc $< $$f.tif $<.mrc && \
-	$(VGLRUN) midas -D $<.mrc $@ # -D: do not run in background
+	$(VGLRUN) midas -D -s 0,3000 $<.mrc $@ # -D: do not run in background
+
+define BASE_TRA
+(CenterOfRotationPoint $(halfex) )
+(NumberOfParameters 3.000000 )
+(Transform "EulerTransform" )
+(TransformParameters 
+endef
+export BASE_TRA
+
+%.txt : %.xf
+	rad=`xf2rotmagstr $< | awk 'BEGIN{pi = atan2(0, -1)} /2:/ {print $$3/180*pi}'` && \
+	xy=`awk 'NR==2 {print $$5, $$6}' $<` && \
+	echo "$$BASE_TRA $$rad $$xy )" > $@ # no heredoc possible, but: http://stackoverflow.com/questions/649246/is-it-possible-to-create-a-multi-line-string-variable-in-a-makefile#649462
