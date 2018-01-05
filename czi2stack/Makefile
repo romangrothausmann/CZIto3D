@@ -95,7 +95,7 @@ slides/ord/reg/ : parameterFile.txt all.slicesOrdered
 
 all.raw : slides/
 	cd slides && \
-	ln -s ../$(RAWDIR)/CZIs/*.czi .
+	ln -sf ../$(RAWDIR)/CZIs/*.czi .
 	touch $@
 
 all.info : slides/ all.raw
