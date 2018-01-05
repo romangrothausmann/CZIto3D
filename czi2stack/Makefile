@@ -148,5 +148,7 @@ all.slicesOrdered : slides/slideOrder.lst
 	touch $@
 
 slides/ord/%.txt : slides/ord/%.tif # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
-	tif2mrc $< `find -name '*.tif' | grep -B1 slides/ord/reg/000005_17-296_0091_s01_01.tif | head -n1 | sed 's|reg/||' | sed 's/\\.tif/.png/'` $<.mrc && \
+	f=`find -name '*.tif' | grep -B1 slides/ord/reg/000005_17-296_0091_s01_01.tif | head -n1 | sed 's|reg/||' | sed 's/\\.tif//'` ; \
+	$(convertIM) $$f.png $$f.tif && \
+	tif2mrc $< $$f.tif $<.mrc && \
 	$(VGLRUN) midas -D $<.mrc $@ # -D: do not run in background
