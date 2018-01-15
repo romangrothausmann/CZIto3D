@@ -153,10 +153,11 @@ all.slicesOrdered : slides/slideOrder.lst
 	touch $@
 
 slides/ord/%.xf : slides/ord/reg/%.tif # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
-	f=`find $(dir $<) -name '*[0-9].tif' | sort | grep -B1 $< | head -n1 | sed 's|reg/||' | sed 's/\\.tif//'` ; \
-	$(convertIM) $$f.png $$f.tif && \
-	tif2mrc $< $$f.tif $<.mrc && \
-	rm $$f.tif && \
+	fi=`find $(dir $<) -name '*[0-9].tif' | sort | grep -B1 $< | head -n1 | sed 's/\\.tif//'` ; \
+	mi=`echo $< | sed 's|reg/||' | sed 's/\\.tif//'` ; \
+	$(convertIM) $$mi.png $$mi.tif && \
+	tif2mrc $$fi.tif $$mi.tif $<.mrc && \
+	rm $$mi.tif && \
 	$(VGLRUN) midas -D -s 0,3000 $<.mrc $@ # -D: do not run in background
 	rm $<.mrc # MRC only created for midas
 
