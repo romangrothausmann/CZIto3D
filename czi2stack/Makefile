@@ -153,7 +153,7 @@ all.slicesOrdered : slides/slideOrder.lst
 	touch $@
 
 slides/ord/%.xf : slides/ord/reg/%.tif # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
-	f=`find -name '*.tif' | grep -B1 slides/ord/reg/000005_17-296_0091_s01_01.tif | head -n1 | sed 's|reg/||' | sed 's/\\.tif//'` ; \
+	f=`find -name '*.tif' | grep -B1 $< | head -n1 | sed 's|reg/||' | sed 's/\\.tif//'` ; \
 	$(convertIM) $$f.png $$f.tif && \
 	tif2mrc $< $$f.tif $<.mrc && \
 	rm $$f.tif && \
