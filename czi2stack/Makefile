@@ -171,5 +171,5 @@ export BASE_TRA
 
 %.txt : %.xf
 	rad=`xf2rotmagstr $< | awk 'BEGIN{pi = atan2(0, -1)} /2:/ {print $$3/180*pi}'` && \
-	xy=`awk 'NR==2 {print $$5, $$6}' $<` && \
+	xy=`awk 'NR==2 {print -$$5, $$6}' $<` && \
 	echo "$$BASE_TRA $$rad $$xy )" > $@ # no heredoc possible, but: http://stackoverflow.com/questions/649246/is-it-possible-to-create-a-multi-line-string-variable-in-a-makefile#649462
