@@ -153,8 +153,13 @@ all.slicesOrdered : slides/slideOrder.lst
 	touch $@
 
 slides/ord/%.xf : slides/ord/reg/%.tif # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
-	fi=`find $(dir $<) -name '*[0-9].tif' | sort | grep -B1 $< | head -n1 | sed 's/\\.tif//'` ; \
+	if [ -z ${$(BACKWARDS)+x} ]; then \
+	fi=`find $(dir $<) -name '*[0-9].tif' | sort | grep -A1 $< | sed -n '2s/\\.tif//p'` ; \
+	else \
+	fi=`find $(dir $<) -name '*[0-9].tif' | sort | grep -B1 $< | sed -n '1s/\\.tif//p'` ; \
+	fi ; \
 	mi=`echo $< | sed 's|reg/||' | sed 's/\\.tif//'` ; \
+	echo "$$fi $$mi" ; \
 	$(convertIM) $$mi.png $$mi.tif && \
 	tif2mrc $$fi.tif $$mi.tif $<.mrc && \
 	rm $$mi.tif && \
