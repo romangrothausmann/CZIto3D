@@ -2,6 +2,8 @@
 
 ## output of parallel
 *.out
+## do not ignore
+!recRegStack.out 
 ## links to orig CZIs
 *.czi
 ## CZI info text files
@@ -22,3 +24,5 @@
 !*.txt
 ## ignore *.log/IterationInfo.*.txt (part of *.log)
 IterationInfo.*.txt
+## ignore *.log files but not dirs
+ord/reg/*.log/*.log
