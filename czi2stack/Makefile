@@ -158,7 +158,11 @@ slides/ord/%.xf : slides/ord/%.png # $$(call int_dec,%) ## gmsl function not suf
 	else \
 	fi=`find $(dir $<) -name '*[0-9].png' | sort | grep -B1 $< | sed -n '1s/\\.png//p' | sed 's|ord/|ord/reg/|' ` ; \
 	fi ; \
+	if [ -z "$(MI)" ]; then \
 	mi=`echo $< | sed 's/\\.png//'` ; \
+	else \
+	mi=$(MI) `# for mirrored mi` ; \
+	fi ; \
 	echo "$$fi $$mi" ; \
 	$(convertIM) $$mi.png $$mi.tif && \
 	tif2mrc $$fi.tif $$mi.tif $<.mrc && \
