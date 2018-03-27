@@ -152,13 +152,13 @@ all.slicesOrdered : slides/slideOrder.lst
 		bfconvert -no-upgrade -overwrite -series $(S) -crop {1} $< $*_{2}.png   &> $*_{2}.out '
 	touch $@
 
-slides/ord/%.xf : slides/ord/reg/%.tif # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
+slides/ord/%.xf : slides/ord/%.png # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
 	if [ -n "$(BACKWARDS)" ]; then \
-	fi=`find $(dir $<) -name '*[0-9].tif' | sort | grep -A1 $< | sed -n '2s/\\.tif//p'` ; \
+	fi=`find $(dir $<) -name '*[0-9].png' | sort | grep -A1 $< | sed -n '2s/\\.png//p' | sed 's|ord/|ord/reg/|' ` ; \
 	else \
-	fi=`find $(dir $<) -name '*[0-9].tif' | sort | grep -B1 $< | sed -n '1s/\\.tif//p'` ; \
+	fi=`find $(dir $<) -name '*[0-9].png' | sort | grep -B1 $< | sed -n '1s/\\.png//p' | sed 's|ord/|ord/reg/|' ` ; \
 	fi ; \
-	mi=`echo $< | sed 's|reg/||' | sed 's/\\.tif//'` ; \
+	mi=`echo $< | sed 's/\\.png//'` ; \
 	echo "$$fi $$mi" ; \
 	$(convertIM) $$mi.png $$mi.tif && \
 	tif2mrc $$fi.tif $$mi.tif $<.mrc && \
