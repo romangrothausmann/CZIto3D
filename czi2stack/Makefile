@@ -191,5 +191,5 @@ define BASE_PF
 endef
 export BASE_PF
 
-%.pf.txt : %.txt # not dependent on the use of a man. init. tra. (MiT), but MiT should be tried first because later changes to defaults in parameterFile.txt (e.g. higher res) are not overwritten by MiT
+%.pf.txt : # %.txt will be deleted as intermediate (.SECONDARY nor .PRECIOUS work with wildcards) # not dependent on the use of a man. init. tra. (MiT), but MiT should be tried first because later changes to defaults in parameterFile.txt (e.g. higher res) are not overwritten by MiT
 	echo "$$BASE_PF" > $@
