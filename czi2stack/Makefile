@@ -181,3 +181,15 @@ export BASE_TRA
 	A=`awk 'NR==2 {print $$1, $$2, $$3, $$4}' $<` && \
 	T=`awk 'NR==2 {print $$5, -$$6}' $(word 2, $^) # - due to different y-convention ` && \
 	echo "$$BASE_TRA $$A $$T )" > $@ # no heredoc possible, but: http://stackoverflow.com/questions/649246/is-it-possible-to-create-a-multi-line-string-variable-in-a-makefile#649462
+
+define BASE_PF
+//// overwrite defaults from parameterFile.txt for specific image (pair)
+(MaximumStepLength 0.0) // to avoid any change during 0th reg. iteration
+(MaximumNumberOfIterations 0) // only one (0th) iteration
+// (NumberOfResolutions 2) // different pyramid levels
+// (ImagePyramidSchedule  32 32  16 16) // use different resolutions
+endef
+export BASE_PF
+
+%.pf.txt : %.txt # not dependent on the use of a man. init. tra. (MiT), but MiT should be tried first because later changes to defaults in parameterFile.txt (e.g. higher res) are not overwritten by MiT
+	echo "$$BASE_PF" > $@
