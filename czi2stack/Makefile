@@ -35,7 +35,7 @@ EXECUTABLES = showinf bfconvert
 EXECUTABLES+= parallel
 EXECUTABLES+= ImageJ-linux64
 EXECUTABLES+= $(VGLRUN)
-EXECUTABLES+= tif2mrc midas xf2rotmagstr
+EXECUTABLES+= tif2mrc midas xfinverse
 EXECUTABLES+= convert mogrify
 
 K:= $(foreach exec,$(EXECUTABLES),\
@@ -166,15 +166,18 @@ slides/ord/%.xf : slides/ord/%.png # $$(call int_dec,%) ## gmsl function not suf
 	$(VGLRUN) midas -D -s 0,3000 $<.mrc $@ # -D: do not run in background
 	rm $<.mrc # MRC only created for midas
 
+%.xf.inv : %.xf
+	xfinverse $< $@
+
 define BASE_TRA
 (CenterOfRotationPoint $(halfex) )
-(NumberOfParameters 3.000000 )
-(Transform "EulerTransform" )
+(NumberOfParameters 6 )
+(Transform "AffineTransform" )
 (TransformParameters 
 endef
 export BASE_TRA
 
-%.txt : %.xf
-	rad=`xf2rotmagstr $< | awk 'BEGIN{pi = atan2(0, -1)} /2:/ {print $$3/180*pi}'` && \
-	xy=`awk 'NR==2 {print -$$5, $$6}' $<` && \
-	echo "$$BASE_TRA $$rad $$xy )" > $@ # no heredoc possible, but: http://stackoverflow.com/questions/649246/is-it-possible-to-create-a-multi-line-string-variable-in-a-makefile#649462
+%.txt : %.xf %.xf.inv
+	A=`awk 'NR==2 {print $$1, $$2, $$3, $$4}' $<` && \
+	T=`awk 'NR==2 {print $$5, -$$6}' $(word 2, $^) # - due to different y-convention ` && \
+	echo "$$BASE_TRA $$A $$T )" > $@ # no heredoc possible, but: http://stackoverflow.com/questions/649246/is-it-possible-to-create-a-multi-line-string-variable-in-a-makefile#649462
