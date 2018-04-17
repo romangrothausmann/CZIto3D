@@ -22,6 +22,11 @@
 !*.lst
 ## never ignore TXTs containing the result of man. inital ali.
 !*.txt
+## ignore intermediate XF,MRC files from midas
+*.xf
+*.xf~
+*.mrc
+*.mrc~
 ## ignore *.log/IterationInfo.*.txt (part of *.log)
 IterationInfo.*.txt
 ## ignore *.log files but not dirs
