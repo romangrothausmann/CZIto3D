@@ -107,6 +107,19 @@ slides/ord/reg/ : parameterFile.txt all.slicesOrdered
 %/avg.png : %
 	$(convertIM) -average $</*.tif $@
 
+slides/ord/reg/reg.mhd : slides/ord/reg/
+	list=` cd $< ; ls -1 *.tif ` ; \
+	numb=` echo "$$list" | wc -l ` ; \
+	echo "ObjectType = Image" > $@ ; \
+	echo "NDims = 3" >> $@ ; \
+	echo "ElementSpacing = 1.5 1.5 1.5" >> $@ ; \
+	echo "DimSize = $(extent) $$numb" >> $@ ; \
+	echo "ElementNumberOfChannels = 1" >> $@ ; \
+	echo "ElementType = MET_USHORT" >> $@ ; \
+	echo "ElementByteOrderMSB = False" >> $@ ; \
+	echo "ElementDataFile = LIST" >> $@ ; \
+	echo "$$list" >> $@
+
 all.raw : slides/
 	cd slides && \
 	ln -sf ../$(RAWDIR)/CZIs/*.czi .
