@@ -104,6 +104,9 @@ slides/ord/reg/ : parameterFile.txt all.slicesOrdered
 	cd slides/ord/ && \
 	python ../../$(SUBMODDIR)/elastix/recRegStack.py -i "*.png" -o reg/ -p ../../$< | tee recRegStack.out
 
+%/avg.png : %
+	$(convertIM) -average $</*.tif $@
+
 all.raw : slides/
 	cd slides && \
 	ln -sf ../$(RAWDIR)/CZIs/*.czi .
