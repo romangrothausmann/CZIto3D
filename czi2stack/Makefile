@@ -107,12 +107,13 @@ slides/ord/reg/ : parameterFile.txt all.slicesOrdered
 %/avg.png : %
 	$(convertIM) -average $</*.tif $@
 
-slides/ord/reg/reg.mhd : slides/ord/reg/
+slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same pixel size for all CZIs
+	xy_r=` BF_MAX_MEM=1g showinf  -option zeissczi.attachments false  -no-upgrade -nopix $(word 2,$^) | awk  '/Scaling.Distance.Value/ {printf("%e ", $$3)}' ` ; \
 	list=` cd $< ; ls -1 *.tif ` ; \
 	numb=` echo "$$list" | wc -l ` ; \
 	echo "ObjectType = Image" > $@ ; \
 	echo "NDims = 3" >> $@ ; \
-	echo "ElementSpacing = 1.5 1.5 1.5" >> $@ ; \
+	echo "ElementSpacing = $$xy_r 1.5" >> $@ ; \
 	echo "DimSize = $(extent) $$numb" >> $@ ; \
 	echo "ElementNumberOfChannels = 1" >> $@ ; \
 	echo "ElementType = MET_USHORT" >> $@ ; \
