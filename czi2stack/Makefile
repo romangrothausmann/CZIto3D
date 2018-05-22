@@ -41,7 +41,7 @@ EXECUTABLES+= ImageJ-linux64
 EXECUTABLES+= $(VGLRUN)
 EXECUTABLES+= tif2mrc midas xfinverse
 EXECUTABLES+= convert mogrify
-EXECUTABLES+= project
+EXECUTABLES+= project std-mean_ROI_SBS
 
 K:= $(foreach exec,$(EXECUTABLES),\
 	$(if $(shell PATH=$(PATH) which $(exec)),some string,$(error "No $(exec) in PATH")))
@@ -123,6 +123,9 @@ slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same p
 	echo "ElementDataFile = LIST" >> $@ ; \
 	echo "$$list" >> $@
 
+
+%_smROI.mhd : %.mhd
+	std-mean_ROI_SBS $< $@  500 500 0  2500 2500 ` awk '/DimSize/ {print $$5}' $< `
 
 %_pro-mean+x.png : %.mhd
 	project $< $@  0 0 0
