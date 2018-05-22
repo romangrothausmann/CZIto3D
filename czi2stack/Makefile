@@ -25,11 +25,15 @@ BF?=/opt/bio-format_CLIs/
 IJ?=/opt/fiji/Fiji.app/
 IMOD?=/opt/imod/IMOD/
 
+### setting default paths of internal programs
+ITK?=$(SUBMODDIR)/ITK-CLIs/build
+
 export VGLRUN?=vglrun
 
 export PATH:= $(BF):$(PATH)
 export PATH:= $(IJ):$(PATH)
 export PATH:= $(IMOD)/bin:$(PATH)
+export PATH:= $(ITK):$(PATH)
 
 EXECUTABLES = showinf bfconvert
 EXECUTABLES+= parallel
@@ -37,6 +41,7 @@ EXECUTABLES+= ImageJ-linux64
 EXECUTABLES+= $(VGLRUN)
 EXECUTABLES+= tif2mrc midas xfinverse
 EXECUTABLES+= convert mogrify
+EXECUTABLES+= project
 
 K:= $(foreach exec,$(EXECUTABLES),\
 	$(if $(shell PATH=$(PATH) which $(exec)),some string,$(error "No $(exec) in PATH")))
@@ -104,9 +109,6 @@ slides/ord/reg/ : parameterFile.txt all.slicesOrdered
 	cd slides/ord/ && \
 	python ../../$(SUBMODDIR)/elastix/recRegStack.py -i "*.png" -o reg/ -p ../../$< | tee recRegStack.out
 
-%/avg.png : %
-	$(convertIM) -average $</*.tif $@
-
 slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same pixel size for all CZIs
 	xy_r=` BF_MAX_MEM=1g showinf  -option zeissczi.attachments false  -no-upgrade -nopix $(word 2,$^) | awk  '/Scaling.Distance.Value/ {printf("%e ", $$3)}' ` ; \
 	list=` cd $< ; ls -1 *.tif ` ; \
@@ -120,6 +122,20 @@ slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same p
 	echo "ElementByteOrderMSB = False" >> $@ ; \
 	echo "ElementDataFile = LIST" >> $@ ; \
 	echo "$$list" >> $@
+
+
+%_pro-mean+x.png : %.mhd
+	project $< $@  0 0 0
+
+%_pro-mean+y.png : %.mhd
+	project $< $@  0 0 1
+
+%_pro-mean+z.png : %.mhd
+	project $< $@  0 0 2
+
+%_pro-std+z.png : %.mhd
+	project $< $@  0 5 2
+
 
 all.raw : slides/
 	cd slides && \

@@ -1,3 +1,6 @@
 [submodule "submodules/elastix"]
 	path = submodules/elastix
 	url = https://github.com/romangrothausmann/elastix_scripts.git
+[submodule "submodules/ITK-CLIs"]
+	path = submodules/ITK-CLIs
+	url = https://github.com/romangrothausmann/ITK-CLIs.git
