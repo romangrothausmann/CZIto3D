@@ -5,6 +5,8 @@
 #### Done:
 
 
+BN?=K2
+
 SHELL:= /bin/bash
 
 SPACE := $(eval) $(eval)
@@ -67,7 +69,9 @@ halfex:= $(call map,halve,$(extent))
 .PHONY : all clean dist-clean
 
 
-all : slides/ord/reg/
+all : slides/ord/reg/ # registration
+all : slides/ord/reg/$(BN)_reg_smROI.mhd # normalized 3D stack
+all : slides/ord/reg/$(BN)_reg_smROI_pro-mean+z.png # projection
 
 clean:
 	-cd slides/ && \
