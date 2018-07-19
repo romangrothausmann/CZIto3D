@@ -1,0 +1,3 @@
+## special diffs
+*.tif     diff=image
+*.png	  diff=image
