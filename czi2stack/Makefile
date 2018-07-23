@@ -111,7 +111,7 @@ slides/slideOrder.lst : slides/ all.slices
 
 slides/ord/reg/ : parameterFile.txt all.slicesOrdered
 	cd slides/ord/ && \
-	python ../../$(SUBMODDIR)/elastix/recRegStack.py -i "*.png" -o reg/ -p ../../$< | tee recRegStack.out
+	python ../../$(SUBMODDIR)/elastix/recRegStack.py -i "*.png" -o reg/ -p ../../$< -m 1000 2000 1000 2000 -s *_0070_s00_01.png -S ` sed 's/^\(.*\)$$/*_\1.png/g' < ../../lostSlieds.lst | xargs ` -f -b | tee recRegStack.out
 
 slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same pixel size for all CZIs
 	xy_r=` BF_MAX_MEM=1g showinf  -option zeissczi.attachments false  -no-upgrade -nopix $(word 2,$^) | awk  '/Scaling.Distance.Value/ {printf("%e ", $$3)}' ` ; \
