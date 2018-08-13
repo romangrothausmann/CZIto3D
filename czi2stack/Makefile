@@ -79,7 +79,7 @@ clean:
 
 dist-clean : clean
 	-cd slides/ && \
-	rm -v *.ctr *.lst *.txt
+	rm -v *.lst *.txt
 	-rm -rf slides/ord/
 
 
@@ -96,22 +96,12 @@ dist-clean : clean
 		bfconvert -no-upgrade -overwrite -series {1} $< $*_s{2}.tif  &> $*_s{2}.out '
 	touch $@
 
-%.ctr : %.tif # output from modified export_multipointset.ijm
-#	echo "macro 'Multi-point [f1]' {setTool('multipoint')}" >> Fiji.app/macros/StartupMacros.fiji.ijm  # https://imagej.nih.gov/ij/docs/guide/146-35.html#sub:Tools-shortcuts
-#	echo "macro 'export_multipointset [f2]' {run('export multipointset')}" >> Fiji.app/macros/StartupMacros.fiji.ijm
-#	echo "macro 'quit [q]' {run('Quit')}" >> Fiji.app/macros/StartupMacros.fiji.ijm
-	ImageJ-linux64 --allow-multiple --memory=20g  $< # put export_multipointset.ijm in /opt/fiji/Fiji.app/plugins/ and short-cut to e.g. F2
-	-if test -s $*.tif.txt ; then \
-		mv $*.tif.txt $@ ; \
-		$(MAKE) -j1 $*.slices & \
-	fi
-
 slides/slideOrder.lst : slides/ all.slices
 	ls -1 slides/*.png | sed 's|.*/||' > $@
 
 slides/ord/reg/ : parameterFile.txt all.slicesOrdered
 	cd slides/ord/ && \
-	python ../../$(SUBMODDIR)/elastix/recRegStack.py -i "*.png" -o reg/ -p ../../$< -m 1000 2000 1000 2000 -s *_0070_s00_01.png -S ` sed 's/^\(.*\)$$/*_\1.png/g' < ../../lostSlieds.lst | xargs ` -f -b | tee recRegStack.out
+	python ../../$(SUBMODDIR)/elastix/recRegStack.py -i "*.png" -o reg/ -p ../../$< -s *_0070_s00_01.png -S ` sed 's/^\(.*\)$$/*_\1.png/g' < ../../lostSlieds.lst | xargs ` -f -b | tee recRegStack.out
 
 slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same pixel size for all CZIs
 	xy_r=` BF_MAX_MEM=1g showinf  -option zeissczi.attachments false  -no-upgrade -nopix $(word 2,$^) | awk  '/Scaling.Distance.Value/ {printf("%e ", $$3)}' ` ; \
@@ -159,13 +149,8 @@ all.thumbs : slides/ all.info
 	| parallel --eta -j$(JOBS) -u '$(MAKE) -j1 {.}.th  &> {.}.out'
 	touch $@
 
-all.coords : slides/ all.thumbs
+all.slices : slides/ all.thumbs
 	ls $</*.tif \
-	| parallel --eta -j1 '$(MAKE) -j1 {.}.ctr &> /dev/null' # -j2 needs disabled "multi instant listener" under Edit->Options->Misc
-	touch $@
-
-all.slices : slides/ all.coords
-	ls $</*.ctr \
 	| parallel --eta -j16 '$(MAKE) -j1 {.}.slices &> {}.slices.out' # -j16 becuase %.slices already mostly runs multiple instances of  bfconvert that are at least dual-threaded
 	touch $@
 
@@ -177,7 +162,7 @@ all.slicesOrdered : slides/slideOrder.lst
 
 .SECONDEXPANSION:
 
-%.slices : $$(call base_,%).czi $$(call base_,%).info %.ctr
+%.slices : $$(call base_,%).czi $$(call base_,%).info
 	@echo "process $+ to $*"
 	$(eval pos= $(subst $(basename $<),,$*))
 	$(eval pos= $(subst _s,,$(pos)))
@@ -186,10 +171,8 @@ all.slicesOrdered : slides/slideOrder.lst
 	$(eval W= $(shell awk '$$1==$(pos){print $$2}' $(word 2,$^)))
 	$(eval H= $(shell awk '$$1==$(pos){print $$3}' $(word 2,$^)))
 	echo $(pos) $(s) $(S) $(W) $(H)
-	-awk  'NR>2 { printf("%d,%d,$(w),$(h) %02d\n", $$1*$(s)-($(w)/2) < 0 ? 0 : $$1*$(s)-($(w)/2) > $(W)-$(w) ? $(W)-$(w) : $$1*$(s)-($(w)/2), $$2*$(s)-($(h)/2) < 0 ? 0 : $$2*$(s)-($(h)/2) > $(H)-$(h) ? $(H)-$(h) : $$2*$(s)-($(h)/2), NR-2 ) }' $(lastword $^) \
-	| parallel --colsep ' ' --eta -j$(JOBS) --retries 3 -u ' \
-		BF_MAX_MEM=10g  \
-		bfconvert -no-upgrade -overwrite -series $(S) -crop {1} $< $*_{2}.png   &> $*_{2}.out '
+	BF_MAX_MEM=10g  \
+		bfconvert -no-upgrade -overwrite -series $(S) $< $*.png   &> $*.out
 	touch $@
 
 slides/ord/%.xf : slides/ord/%.png # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
