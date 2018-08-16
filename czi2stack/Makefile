@@ -273,9 +273,10 @@ define BASE_TRA
 endef
 export BASE_TRA
 
-%.txt : %.xf %.xf.inv # XF order the same as of elstix (see eq. 2.14 elastix-manual and FILES under man midas) but different transform conventions (mi <-> fi and y-direction)
-	A=`awk 'NR==2 {print $$1, $$2, $$3, $$4}' $<` && \
-	T=`awk 'NR==2 {print $$5, -$$6}' $(word 2, $^) # - due to different y-convention ` && \
+%.txt : %.xf.inv # XF order the same as of elstix (see eq. 2.14 elastix-manual and FILES under man midas) but different transform conventions (mi <-> fi and y-direction)
+	cat $^
+	A=`awk 'NR==2 {print $$1, $$3, $$2, $$4}' $<` && \
+	T=`awk 'NR==2 {print $$5, -$$6}' $< # - due to different y-convention ` && \
 	echo "$$BASE_TRA $$A $$T )" > $@ # no heredoc possible, but: http://stackoverflow.com/questions/649246/is-it-possible-to-create-a-multi-line-string-variable-in-a-makefile#649462
 	-rm $^ # remove input files (not always cleaned by make) such that make will start with midas again
 
