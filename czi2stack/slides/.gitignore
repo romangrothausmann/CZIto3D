@@ -6,8 +6,6 @@
 !recRegStack.out 
 ## links to orig CZIs
 *.czi
-## CZI info text files
-*.info
 ## MF empty target for thump-nail TIF extraction
 *.th
 ## auto extracted TIFs
