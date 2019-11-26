@@ -8,14 +8,10 @@
 *.czi
 ## MF empty target for thump-nail TIF extraction
 *.th
-## auto extracted TIFs
-*.tif
 ## never ignore CTRs containing the result of man. center marking
 !*.ctr
 ## MF empty target for actual slice extraction (PNGs)
 *.slices
-## auto extracted PNGs
-*.png
 ## never ignore LSTs containing possible man. adj. of the slice order
 !*.lst
 ## never ignore TXTs containing the result of man. inital ali.
