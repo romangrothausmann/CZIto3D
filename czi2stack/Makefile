@@ -17,9 +17,6 @@ base. = $(subst $(SPACE),.,$(filter-out $(lastword $(subst ., ,$1)),$(subst ., ,
 BINDIR?=../bin
 SUBMODDIR?=../submodules/
 
-SE?=/opt/SimpleElastix/
-export PYTHONPATH=$(SE)/lib/python/
-
 
 ### setting default paths of external programs
 ## BF-5.5.1:
