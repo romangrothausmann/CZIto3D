@@ -6,3 +6,5 @@
 *         annex.largefiles=nothing
 *.tif     annex.largefiles=anything
 *.png     annex.largefiles=(exclude=czi2stack/slides/ord/reg/*.png)
+*.mha     annex.largefiles=anything
+*.raw     annex.largefiles=anything
