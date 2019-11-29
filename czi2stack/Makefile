@@ -109,7 +109,7 @@ slides/slideOrder.lst : slides/ all.slices
 slides/ord/reg/ : parameterFile.txt all.slicesOrdered
 	startSlice=` cd slides/ord/ && ls *_K2_0070_s00_01.png` && \
 	skipSlices=` cd slides/ord/ && cat ../../lostSlieds.lst | xargs -I@ sh -c 'ls *@.png' ` && \
-	docker run -t --rm --user $$UID:$$GID -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/slides/ord/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:451e1d4c \
+	docker run -t --rm --user $$UID:$$GID -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/slides/ord/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:34cb4e3c \
 	recRegStack.py -i "*.png" -o reg/ -p ../../$< -m 1000 2000 1000 2000 -s $$startSlice -S $$skipSlices -f -b | tee slides/ord/recRegStack.out
 
 slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same pixel size for all CZIs
