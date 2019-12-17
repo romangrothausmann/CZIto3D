@@ -58,7 +58,7 @@ RAWDIR?= ../../raw/
 
 include gmsl
 
-extent:=  6000 6000
+extent?=  6000 6000
 w=$(word 1, $(extent))
 h=$(word 2, $(extent))
 halfex:= $(call map,halve,$(extent))
@@ -191,7 +191,7 @@ all.slicesOrdered : slides/slideOrder.lst
 		bfconvert -no-upgrade -overwrite -series $(S) -crop {1} $< $*_{2}.png   &> $*_{2}.out '
 	touch $@
 
-slides/ord/%.xf : slides/ord/%.png # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
+%.xf : %.png # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
 	if [ -n "$(BACKWARDS)" ]; then \
 	fi=`find $(dir $<) -name '*[0-9].png' | sort | grep -A1 $< | sed -n '2s/\\.png//p' | sed 's|ord/|ord/reg/|' ` ; \
 	else \
