@@ -118,7 +118,8 @@ slides/slideOrder.lst : slides/ all.slices
 define GNUPLOT_CMD
 set terminal svg enhanced font "arial,10" size 1000,500
 set output outfile
-set xlabel "slice #"
+stats datafile u 2
+set xlabel "slice \\\\#"
 set ylabel "metric value"
 #set xrange [0:2607]
 #set yrange [0:10000]
@@ -129,7 +130,7 @@ endef
 export GNUPLOT_CMD
 
 %/recRegStack.svg : %/recRegStack.dat
-	gnuplot -e "datafile='$<'; outfile='$@';" <(echo "$$GNUPLOT_CMD") # stdin disregarded with -e so using process substitution
+	gnuplot -e "datafile='$<'; outfile='$@';" <(echo "$$GNUPLOT_CMD") >& $*/recRegStack.stat # stdin disregarded with -e so using process substitution
 
 slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same pixel size for all CZIs
 	xy_r=` BF_MAX_MEM=1g showinf  -option zeissczi.attachments false  -no-upgrade -nopix $(word 2,$^) | awk  '/Scaling.Distance.Value/ {printf("%e ", $$3)}' ` ; \
