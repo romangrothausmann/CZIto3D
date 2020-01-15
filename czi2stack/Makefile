@@ -115,6 +115,20 @@ slides/slideOrder.lst : slides/ all.slices
 %/recRegStack.dat : %/recRegStack.out
 	awk 'match($$4, /[0-9]+/) {print substr($$4, RSTART, RLENGTH), $$(NF-1), NF}' $< > $@ # https://www.gnu.org/software/gawk/manual/html_node/String-Functions.html#index-match_0028_0029-function
 
+define GNUPLOT_CMD
+set terminal svg enhanced font "arial,10" size 1000,500
+set output outfile
+set xlabel "slice #"
+set ylabel "metric value"
+#set xrange [0:2607]
+#set yrange [0:10000]
+plot datafile u 1:2 w lines lc "black" t "metric"
+endef
+export GNUPLOT_CMD
+
+%/recRegStack.svg : %/recRegStack.dat
+	gnuplot -e "datafile='$<'; outfile='$@';" <(echo "$$GNUPLOT_CMD") # stdin disregarded with -e so using process substitution
+
 slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same pixel size for all CZIs
 	xy_r=` BF_MAX_MEM=1g showinf  -option zeissczi.attachments false  -no-upgrade -nopix $(word 2,$^) | awk  '/Scaling.Distance.Value/ {printf("%e ", $$3)}' ` ; \
 	list=` cd $< ; ls -1 *.tif ` ; \
