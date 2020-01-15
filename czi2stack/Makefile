@@ -124,8 +124,8 @@ set ylabel "metric value"
 #set xrange [0:2607]
 #set yrange [0:10000]
 plot datafile u 1:2 w lines  lc "black" t "metric", \
-     "" u 1:($$3==1?$$2:1/0) lc "green" t "mIT", \
-     "" u 1:($$4==1?$$2:1/0) lc "red"   t "iPF" # https://stackoverflow.com/questions/6564561/gnuplot-conditional-plotting-plot-col-acol-b-if-col-c-x#6565152
+     "" u 1:($$3==1?$$2:1/0) w points pt 1 lc "green" t "mIT", \
+     "" u 1:($$4==1?$$2:1/0) w points pt 2 lc "red"   t "iPF" # https://stackoverflow.com/questions/6564561/gnuplot-conditional-plotting-plot-col-acol-b-if-col-c-x#6565152
 endef
 export GNUPLOT_CMD
 
