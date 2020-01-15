@@ -113,7 +113,7 @@ slides/slideOrder.lst : slides/ all.slices
 	recRegStack.py -i "*.png" -o reg/ -p ../../$< -m 1000 2000 1000 2000 -n 32 -s $$startSlice -S $$skipSlices -f -b | tee $*/recRegStack.out
 
 %/recRegStack.dat : %/recRegStack.out
-	awk 'match($$4, /[0-9]+/) {print substr($$4, RSTART, RLENGTH), $$(NF-1), NF}' $< > $@ # https://www.gnu.org/software/gawk/manual/html_node/String-Functions.html#index-match_0028_0029-function
+	awk 'match($$4, /[0-9]+/) {print substr($$4, RSTART, RLENGTH), $$(NF-1), $$0 ~ "[^pf].txt"?1:0, $$0 ~ "pf.txt"?1:0 }' $< > $@ # https://www.gnu.org/software/gawk/manual/html_node/String-Functions.html#index-match_0028_0029-function
 
 define GNUPLOT_CMD
 set terminal svg enhanced font "arial,10" size 1000,500
@@ -123,8 +123,8 @@ set ylabel "metric value"
 #set xrange [0:2607]
 #set yrange [0:10000]
 plot datafile u 1:2 w lines  lc "black" t "metric", \
-     "" u 1:($$3==8?$$2:1/0) lc "green" t "mIT", \
-     "" u 1:($$3==9?$$2:1/0) lc "red"   t "mIT+iPF" # https://stackoverflow.com/questions/6564561/gnuplot-conditional-plotting-plot-col-acol-b-if-col-c-x#6565152
+     "" u 1:($$3==1?$$2:1/0) lc "green" t "mIT", \
+     "" u 1:($$4==1?$$2:1/0) lc "red"   t "iPF" # https://stackoverflow.com/questions/6564561/gnuplot-conditional-plotting-plot-col-acol-b-if-col-c-x#6565152
 endef
 export GNUPLOT_CMD
 
