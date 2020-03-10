@@ -119,11 +119,15 @@ define GNUPLOT_CMD
 set terminal svg enhanced font "arial,10" size 1000,500
 set output outfile
 stats datafile u 2
+#sigma=10
+#set samples 1000
 set xlabel "slice \\\\#"
 set ylabel "metric value"
 #set xrange [0:2607]
 #set yrange [0:10000]
-plot datafile u 1:2 w lines  lc "black" t "metric", \
+#set y2range [0:1]
+plot datafile u 1:3 smooth kdensity bandwidth sigma axes x1y2 with filledcurves y=0 t sprintf("kdensity ({/symbol s}= %2.1f)", sigma) lc rgb "#88000000", \
+     "" u 1:2 w lines  lc "black" t "metric", \
      "" u 1:($$3==1?$$2:1/0) w points pt 1 lc "green" t "mIT", \
      "" u 1:($$4==1?$$2:1/0) w points pt 2 lc "red"   t "iPF" # https://stackoverflow.com/questions/6564561/gnuplot-conditional-plotting-plot-col-acol-b-if-col-c-x#6565152
 endef
