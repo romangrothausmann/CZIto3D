@@ -116,7 +116,7 @@ slides/slideOrder.lst : slides/ all.slices
 	awk 'match($$4, /[0-9]+/) {print substr($$4, RSTART, RLENGTH), $$(NF-1), $$0 ~ "[^pf].txt"?1:0, $$0 ~ "pf.txt"?1:0 }' $< > $@ # https://www.gnu.org/software/gawk/manual/html_node/String-Functions.html#index-match_0028_0029-function
 
 define GNUPLOT_CMD
-set terminal svg enhanced font "arial,10" size 1000,500
+set terminal svg enhanced font "arial,10" size 1000,750
 set output outfile
 stats datafile u 2
 #sigma=10
@@ -124,12 +124,16 @@ stats datafile u 2
 set xlabel "slice \\\\#"
 set ylabel "metric value"
 #set xrange [0:2607]
-#set yrange [0:10000]
-#set y2range [0:1]
-plot datafile u 1:3 smooth kdensity bandwidth sigma axes x1y2 with filledcurves y=0 t sprintf("kdensity ({/symbol s}= %2.1f)", sigma) lc rgb "#88000000", \
-     "" u 1:2 w lines  lc "black" t "metric", \
+#ymax=100000
+#set yrange [-0.5*ymax:ymax]
+#set ytics 0,20000,100000  # no tics for neg. y-axis as kdensity relative
+## https://stackoverflow.com/questions/6564561/gnuplot-conditional-plotting-plot-col-acol-b-if-col-c-x#6565152
+## kdensity and violin plots: http://gnuplot.sourceforge.net/demo/violinplot.html
+plot datafile u 1:2 w lines  lc "black" t "metric", \
      "" u 1:($$3==1?$$2:1/0) w points pt 1 lc "green" t "mIT", \
-     "" u 1:($$4==1?$$2:1/0) w points pt 2 lc "red"   t "iPF" # https://stackoverflow.com/questions/6564561/gnuplot-conditional-plotting-plot-col-acol-b-if-col-c-x#6565152
+     "" u 1:($$4==1?$$2:1/0) w points pt 2 lc "red"   t "iPF", \
+     "" u 1:(-0.5*ymax*$$3) smooth kdensity bandwidth sigma with filledcurves y=0 t "" lc rgb "#8800ff00", \
+     "" u 1:(-0.5*ymax*$$4) smooth kdensity bandwidth sigma with filledcurves y=0 t "" lc rgb "#88ff0000"
 endef
 export GNUPLOT_CMD
 
