@@ -40,7 +40,7 @@ EXECUTABLES+= ImageJ-linux64
 EXECUTABLES+= $(VGLRUN)
 EXECUTABLES+= tif2mrc midas xfinverse
 EXECUTABLES+= convert mogrify
-EXECUTABLES+= project std-mean_ROI_SBS
+EXECUTABLES+= project std-mean_ROI_SBS shift-scale_window_UI8
 
 K:= $(foreach exec,$(EXECUTABLES),\
 	$(if $(shell PATH=$(PATH) which $(exec)),some string,$(error "No $(exec) in PATH")))
@@ -67,7 +67,7 @@ halfex:= $(call map,halve,$(extent))
 
 
 all : slides/ord/reg/ # registration
-all : slides/ord/reg/$(BN)_reg_smROI.mha # normalized 3D stack
+all : slides/ord/reg/$(BN)_reg_smROI_8b.mha # normalized 3D stack
 all : slides/ord/reg/$(BN)_reg_smROI_pro-mean+z.png # projection
 
 clean:
@@ -169,6 +169,9 @@ slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same p
 
 %_pro-std+z.png : %.mha
 	project $< $@  0 5 2
+
+%_8b.mha : %.mha
+	shift-scale_window_UI8 $< $@ 100  0  2000
 
 
 all.raw : slides/
