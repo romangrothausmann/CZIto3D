@@ -150,17 +150,18 @@ unset output # closes output file
 ## workaround output for sed to adjust SVG viewbox: sed -i "s|viewBox=.*\$|`gnuplot ...`|" outfile
 ## note that SVG y-direction is down while gnuplot's y-direction is up!
 set print "-" # print to stdout: help set print
-print sprintf('viewBox="%d %d %d %d" preserveAspectRatio="xMinYMin slice"', \
-      GPVAL_TERM_XMIN, \
-      GPVAL_TERM_YSIZE / GPVAL_TERM_SCALE - GPVAL_TERM_YMAX, \
-      GPVAL_TERM_XMAX - GPVAL_TERM_XMIN, \
-      GPVAL_TERM_YMAX - GPVAL_TERM_YMIN)
+x=GPVAL_TERM_XMIN
+y=GPVAL_TERM_YSIZE / GPVAL_TERM_SCALE - GPVAL_TERM_YMAX
+w=GPVAL_TERM_XMAX - GPVAL_TERM_XMIN
+h=GPVAL_TERM_YMAX - GPVAL_TERM_YMIN
+print sprintf('width="%d" height="%d" viewBox="%d %d %d %d" preserveAspectRatio="xMinYMin slice"', w, h, x, y, w, h)
 unset print # flush
 endef
 export GNUPLOT_CMD
 
 %/recRegStack.svg : %/recRegStack.dat %/reg/$(BN)_reg_smROI_8b_y@1500_cr.png %/reg/$(BN)_reg_smROI_8b_x@1500_cr.png
 	VAL=` gnuplot -e "datafile='$<'; XZimgfile='$(word 2, $^)'; YZimgfile='$(word 3, $^)'; outfile='$@';" <(echo "$$GNUPLOT_CMD") 2> $*/recRegStack.stat ` ; \
+	sed -i -n '/viewBox=/{x;d;};1h;1!{x;p;};${x;p;}' $@ `# delete line before match ` ; \
 	sed -i "s|viewBox=.*\$$|$${VAL}|" $@ # adjust SVG viewbox for typesetting with latex ;-)
 
 slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same pixel size for all CZIs
