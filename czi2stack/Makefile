@@ -68,9 +68,8 @@ halfex:= $(call map,halve,$(extent))
 
 all : slides/ord/reg/ # registration
 all : slides/ord/reg/$(BN)_reg_smROI_8b.mha # normalized 3D stack
-all : slides/ord/reg/$(BN)_reg_smROI_8b_x@1500.png # center yz-slice
-all : slides/ord/reg/$(BN)_reg_smROI_8b_y@1500.png # center xy-slice
 all : slides/ord/reg/$(BN)_reg_smROI_pro-mean+z.png # projection
+all : slides/ord/recRegStack.svg # plot stats in relation to center slices along z-axis
 
 clean:
 	-cd slides/ && \
@@ -118,29 +117,36 @@ slides/slideOrder.lst : slides/ all.slices
 	awk 'match($$4, /[0-9]+/) {print substr($$4, RSTART, RLENGTH), $$(NF-1), $$0 ~ "[^pf].txt"?1:0, $$0 ~ "pf.txt"?1:0 }' $< > $@ # https://www.gnu.org/software/gawk/manual/html_node/String-Functions.html#index-match_0028_0029-function
 
 define GNUPLOT_CMD
-set terminal svg enhanced font "arial,10" size 1000,750
+set terminal svg enhanced font "arial,20" size 1000,3000
 set output outfile
 stats datafile u 2
+#XZy=-900
+#YZy=-2000
 #sigma=10
 #set samples 1000
-set xlabel "slice \\\\#"
-set ylabel "metric value"
-#set xrange [0:2607]
+set xlabel "slice \\\\# = z [µm]"
+set ylabel "metric value" offset 0,12
+set label "xz-slice" at STATS_records/2,XZy+550 center
+set label "yz-slice" at STATS_records/2,YZy+550 center
+#set xrange [0:STATS_records]
 #ymax=100000
 #set yrange [-0.5*ymax:ymax]
 #set ytics 0,20000,100000  # no tics for neg. y-axis as kdensity relative
+#set y2range [-2500:1000]
 ## https://stackoverflow.com/questions/6564561/gnuplot-conditional-plotting-plot-col-acol-b-if-col-c-x#6565152
 ## kdensity and violin plots: http://gnuplot.sourceforge.net/demo/violinplot.html
 plot datafile u 1:2 w lines  lc "black" t "metric", \
      "" u 1:($$3==1?$$2:1/0) w points pt 1 lc "green" t "mIT", \
      "" u 1:($$4==1?$$2:1/0) w points pt 2 lc "red"   t "iPF", \
      "" u 1:(-0.5*ymax*$$3) smooth kdensity bandwidth sigma with filledcurves y=0 t "" lc rgb "#8800ff00", \
-     "" u 1:(-0.5*ymax*$$4) smooth kdensity bandwidth sigma with filledcurves y=0 t "" lc rgb "#88ff0000"
+     "" u 1:(-0.5*ymax*$$4) smooth kdensity bandwidth sigma with filledcurves y=0 t "" lc rgb "#88ff0000", \
+     XZimgfile binary filetype=png center=(STATS_records/2, XZy) axes x1y2 w rgbimage ti '', \
+     YZimgfile binary filetype=png center=(STATS_records/2, YZy) axes x1y2 w rgbimage ti ''
 endef
 export GNUPLOT_CMD
 
-%/recRegStack.svg : %/recRegStack.dat
-	gnuplot -e "datafile='$<'; outfile='$@';" <(echo "$$GNUPLOT_CMD") >& $*/recRegStack.stat # stdin disregarded with -e so using process substitution
+%/recRegStack.svg : %/recRegStack.dat %/reg/$(BN)_reg_smROI_8b_y@1500_cr.png %/reg/$(BN)_reg_smROI_8b_x@1500_cr.png
+	gnuplot -e "datafile='$<'; XZimgfile='$(word 2, $^)'; YZimgfile='$(word 3, $^)'; outfile='$@';" <(echo "$$GNUPLOT_CMD") >& $*/recRegStack.stat # stdin disregarded with -e so using process substitution
 
 slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same pixel size for all CZIs
 	xy_r=` BF_MAX_MEM=1g showinf  -option zeissczi.attachments false  -no-upgrade -nopix $(word 2,$^) | awk  '/Scaling.Distance.Value/ {printf("%e ", $$3)}' ` ; \
