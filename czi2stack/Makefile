@@ -40,7 +40,7 @@ EXECUTABLES+= ImageJ-linux64
 EXECUTABLES+= $(VGLRUN)
 EXECUTABLES+= tif2mrc midas xfinverse
 EXECUTABLES+= convert mogrify
-EXECUTABLES+= project std-mean_ROI_SBS shift-scale_window_UI8
+EXECUTABLES+= project std-mean_ROI_SBS shift-scale_window_UI8 slice
 
 K:= $(foreach exec,$(EXECUTABLES),\
 	$(if $(shell PATH=$(PATH) which $(exec)),some string,$(error "No $(exec) in PATH")))
@@ -68,6 +68,8 @@ halfex:= $(call map,halve,$(extent))
 
 all : slides/ord/reg/ # registration
 all : slides/ord/reg/$(BN)_reg_smROI_8b.mha # normalized 3D stack
+all : slides/ord/reg/$(BN)_reg_smROI_8b_x@1500.png # center yz-slice
+all : slides/ord/reg/$(BN)_reg_smROI_8b_y@1500.png # center xy-slice
 all : slides/ord/reg/$(BN)_reg_smROI_pro-mean+z.png # projection
 
 clean:
@@ -264,3 +266,14 @@ export BASE_PF
 
 %.pf.txt : # %.txt will be deleted as intermediate (.SECONDARY nor .PRECIOUS work with wildcards) # not dependent on the use of a man. init. tra. (MiT), but MiT should be tried first because later changes to defaults in parameterFile.txt (e.g. higher res) are not overwritten by MiT
 	echo "$$BASE_PF" > $@
+
+%.png : $$(call base_,%).mha # even though functions are expanded immediately, this needs to be in SECONDEXPANSION for % to be expanded: http://stackoverflow.com/questions/9526295/how-to-call-functions-within-order-only-prerequisites#9533980
+	@echo "process $+ to $*"
+	$(eval pos= $(subst $(basename $+),,$*))
+	$(eval pos= $(subst _,,$(pos)))
+
+	$(eval sep= $(subst @, ,$(pos)))
+	$(eval normal= $(word 1, $(sep)))
+	$(eval sliceN= $(word 2, $(sep)))
+
+	slice $+ $@ 0 $(normal) $(sliceN)
