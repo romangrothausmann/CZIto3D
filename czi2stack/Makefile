@@ -119,6 +119,9 @@ slides/slideOrder.lst : slides/ all.slices
 define GNUPLOT_CMD
 set terminal svg enhanced font "arial,20" size 1000,3000
 set output outfile
+
+# set margin 0, 0, 0, 0 # fits plot to SVG viewbox BUT also surpresses anything outside, e.g. labels etc; therefore use workaround below
+
 stats datafile u 2
 #XZy=-900
 #YZy=-2000
@@ -142,11 +145,23 @@ plot datafile u 1:($$2/100) w lines  lc "black" t "metric", \
      "" u 1:(-0.5*ymax*$$4) smooth kdensity bandwidth sigma with filledcurves y=0 t "" lc rgb "#88ff0000", \
      XZimgfile binary filetype=png center=(STATS_records/2, XZy) w rgbimage ti '', \
      YZimgfile binary filetype=png center=(STATS_records/2, YZy) w rgbimage ti ''
+
+unset output # closes output file
+## workaround output for sed to adjust SVG viewbox: sed -i "s|viewBox=.*\$|`gnuplot ...`|" outfile
+## note that SVG y-direction is down while gnuplot's y-direction is up!
+set print "-" # print to stdout: help set print
+print sprintf('viewBox="%d %d %d %d" preserveAspectRatio="xMinYMin slice"', \
+      GPVAL_TERM_XMIN, \
+      GPVAL_TERM_YSIZE / GPVAL_TERM_SCALE - GPVAL_TERM_YMAX, \
+      GPVAL_TERM_XMAX - GPVAL_TERM_XMIN, \
+      GPVAL_TERM_YMAX - GPVAL_TERM_YMIN)
+unset print # flush
 endef
 export GNUPLOT_CMD
 
 %/recRegStack.svg : %/recRegStack.dat %/reg/$(BN)_reg_smROI_8b_y@1500_cr.png %/reg/$(BN)_reg_smROI_8b_x@1500_cr.png
-	gnuplot -e "datafile='$<'; XZimgfile='$(word 2, $^)'; YZimgfile='$(word 3, $^)'; outfile='$@';" <(echo "$$GNUPLOT_CMD") >& $*/recRegStack.stat # stdin disregarded with -e so using process substitution
+	VAL=` gnuplot -e "datafile='$<'; XZimgfile='$(word 2, $^)'; YZimgfile='$(word 3, $^)'; outfile='$@';" <(echo "$$GNUPLOT_CMD") 2> $*/recRegStack.stat ` ; \
+	sed -i "s|viewBox=.*\$$|$${VAL}|" $@ # adjust SVG viewbox for typesetting with latex ;-)
 
 slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same pixel size for all CZIs
 	xy_r=` BF_MAX_MEM=1g showinf  -option zeissczi.attachments false  -no-upgrade -nopix $(word 2,$^) | awk  '/Scaling.Distance.Value/ {printf("%e ", $$3)}' ` ; \
