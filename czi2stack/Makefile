@@ -67,7 +67,7 @@ halfex:= $(call map,halve,$(extent))
 
 
 all : slides/ord/reg/ # registration
-all : slides/ord/reg/$(BN)_reg_smROI.mhd # normalized 3D stack
+all : slides/ord/reg/$(BN)_reg_smROI.mha # normalized 3D stack
 all : slides/ord/reg/$(BN)_reg_smROI_pro-mean+z.png # projection
 
 clean:
@@ -155,19 +155,19 @@ slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same p
 	echo "$$list" >> $@
 
 
-%_smROI.mhd : %.mhd
+%_smROI.mha : %.mhd
 	std-mean_ROI_SBS $< $@  500 500 0  2500 2500 ` awk '/DimSize/ {print $$5}' $< `
 
-%_pro-mean+x.png : %.mhd
+%_pro-mean+x.png : %.mha
 	project $< $@  0 0 0
 
-%_pro-mean+y.png : %.mhd
+%_pro-mean+y.png : %.mha
 	project $< $@  0 0 1
 
-%_pro-mean+z.png : %.mhd
+%_pro-mean+z.png : %.mha
 	project $< $@  0 0 2
 
-%_pro-std+z.png : %.mhd
+%_pro-std+z.png : %.mha
 	project $< $@  0 5 2
 
 
