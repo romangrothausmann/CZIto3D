@@ -151,9 +151,9 @@ unset output # closes output file
 ## note that SVG y-direction is down while gnuplot's y-direction is up!
 set print "-" # print to stdout: help set print
 x=GPVAL_TERM_XMIN
-y=GPVAL_TERM_YSIZE / GPVAL_TERM_SCALE - GPVAL_TERM_YMAX
-w=GPVAL_TERM_XMAX - GPVAL_TERM_XMIN
-h=GPVAL_TERM_YMAX - GPVAL_TERM_YMIN
+y=GPVAL_TERM_YSIZE / GPVAL_TERM_SCALE - GPVAL_TERM_YMAX - 1
+w=GPVAL_TERM_XMAX - GPVAL_TERM_XMIN + 1
+h=GPVAL_TERM_YMAX - GPVAL_TERM_YMIN + 1
 print sprintf('width="%d" height="%d" viewBox="%d %d %d %d" preserveAspectRatio="xMinYMin slice"', w, h, x, y, w, h)
 unset print # flush
 endef
