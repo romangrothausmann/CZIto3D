@@ -17,9 +17,6 @@ base. = $(subst $(SPACE),.,$(filter-out $(lastword $(subst ., ,$1)),$(subst ., ,
 BINDIR?=../bin
 SUBMODDIR?=../submodules/
 
-SE?=/opt/SimpleElastix/
-export PYTHONPATH=$(SE)/lib/python/
-
 
 ### setting default paths of external programs
 ## BF-5.5.1:
@@ -43,7 +40,7 @@ EXECUTABLES+= ImageJ-linux64
 EXECUTABLES+= $(VGLRUN)
 EXECUTABLES+= tif2mrc midas xfinverse
 EXECUTABLES+= convert mogrify
-EXECUTABLES+= project std-mean_ROI_SBS
+EXECUTABLES+= project std-mean_ROI_SBS shift-scale_window_UI8 slice
 
 K:= $(foreach exec,$(EXECUTABLES),\
 	$(if $(shell PATH=$(PATH) which $(exec)),some string,$(error "No $(exec) in PATH")))
@@ -61,7 +58,7 @@ RAWDIR?= ../../raw/
 
 include gmsl
 
-extent:=  6000 6000
+extent?=  6000 6000
 w=$(word 1, $(extent))
 h=$(word 2, $(extent))
 halfex:= $(call map,halve,$(extent))
@@ -70,8 +67,9 @@ halfex:= $(call map,halve,$(extent))
 
 
 all : slides/ord/reg/ # registration
-all : slides/ord/reg/$(BN)_reg_smROI.mhd # normalized 3D stack
+all : slides/ord/reg/$(BN)_reg_smROI_8b.mha # normalized 3D stack
 all : slides/ord/reg/$(BN)_reg_smROI_pro-mean+z.png # projection
+all : slides/ord/recRegStack.svg # plot stats in relation to center slices along z-axis
 
 clean:
 	-cd slides/ && \
@@ -99,9 +97,62 @@ dist-clean : clean
 slides/slideOrder.lst : slides/ all.slices
 	ls -1 slides/*.png | sed 's|.*/||' > $@
 
-slides/ord/reg/ : parameterFile.txt all.slicesOrdered
-	cd slides/ord/ && \
-	python ../../$(SUBMODDIR)/elastix/recRegStack.py -i "*.png" -o reg/ -p ../../$< -s *_0070_s00_01.png -S ` sed 's/^\(.*\)$$/*_\1.png/g' < ../../lostSlieds.lst | xargs ` -f -b | tee recRegStack.out
+%/reg/ %/recRegStack.out : parameterFile.txt all.slicesOrdered
+	startSlice=` cd slides/ord/ && ls *_K2_0070_s00_01.png` && \
+	skipSlices=` cd slides/ord/ && cat ../../lostSlieds.lst | xargs -I@ sh -c 'ls *@.png' ` && \
+	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/$*/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:34cb4e3c \
+	recRegStack.py -i "*.png" -o reg/ -p ../../$< -n 32 -s $$startSlice -S $$skipSlices -f -b | tee $*/recRegStack.out
+
+%/recRegStack.dat : %/recRegStack.out
+	awk 'match($$4, /[0-9]+/) {print substr($$4, RSTART, RLENGTH), $$(NF-1), $$0 ~ "[^pf].txt"?1:0, $$0 ~ "pf.txt"?1:0 }' $< > $@ # https://www.gnu.org/software/gawk/manual/html_node/String-Functions.html#index-match_0028_0029-function
+
+define GNUPLOT_CMD
+set terminal svg enhanced font "arial,20" size 1000,3000
+set output outfile
+
+# set margin 0, 0, 0, 0 # fits plot to SVG viewbox BUT also surpresses anything outside, e.g. labels etc; therefore use workaround below
+
+stats datafile u 2
+#XZy=-900
+#YZy=-2000
+#sigma=10
+#set samples 1000
+set xlabel "slice \\\\# = z [µm]"
+set ylabel "metric value [*100]" offset 0,12
+set label "xz-slice" at STATS_records/2,XZy+550 center
+set label "yz-slice" at STATS_records/2,YZy+550 center
+#set xrange [0:STATS_records]
+#ymax=1000
+#set yrange [-2.5*ymax:ymax]
+#set ytics 0,200,1000  # no tics for neg. y-axis as kdensity relative
+set size ratio -1
+## https://stackoverflow.com/questions/6564561/gnuplot-conditional-plotting-plot-col-acol-b-if-col-c-x#6565152
+## kdensity and violin plots: http://gnuplot.sourceforge.net/demo/violinplot.html
+plot datafile u 1:($$2/100) w lines  lc "black" t "metric", \
+     "" u 1:($$3==1?$$2/100:1/0) w points pt 1 lc "green" t "mIT", \
+     "" u 1:($$4==1?$$2/100:1/0) w points pt 2 lc "red"   t "iPF", \
+     "" u 1:(-0.5*ymax*$$3) smooth kdensity bandwidth sigma with filledcurves y=0 t "" lc rgb "#8800ff00", \
+     "" u 1:(-0.5*ymax*$$4) smooth kdensity bandwidth sigma with filledcurves y=0 t "" lc rgb "#88ff0000", \
+     XZimgfile binary filetype=png center=(STATS_records/2, XZy) w rgbimage ti '', \
+     YZimgfile binary filetype=png center=(STATS_records/2, YZy) w rgbimage ti ''
+
+unset output # closes output file
+## workaround output for sed to adjust SVG viewbox: sed -i "s|viewBox=.*\$|`gnuplot ...`|" outfile
+## note that SVG y-direction is down while gnuplot's y-direction is up!
+set print "-" # print to stdout: help set print
+x=GPVAL_TERM_XMIN
+y=GPVAL_TERM_YSIZE / GPVAL_TERM_SCALE - GPVAL_TERM_YMAX - 1
+w=GPVAL_TERM_XMAX - GPVAL_TERM_XMIN + 1
+h=GPVAL_TERM_YMAX - GPVAL_TERM_YMIN + 1
+print sprintf('width="%d" height="%d" viewBox="%d %d %d %d" preserveAspectRatio="xMinYMin slice"', w, h, x, y, w, h)
+unset print # flush
+endef
+export GNUPLOT_CMD
+
+%/recRegStack.svg : %/recRegStack.dat %/reg/$(BN)_reg_smROI_8b_y@1500_cr.png %/reg/$(BN)_reg_smROI_8b_x@1500_cr.png
+	VAL=` gnuplot -e "datafile='$<'; XZimgfile='$(word 2, $^)'; YZimgfile='$(word 3, $^)'; outfile='$@';" <(echo "$$GNUPLOT_CMD") 2> $*/recRegStack.stat ` ; \
+	sed -i -n '/viewBox=/{x;d;};1h;1!{x;p;};${x;p;}' $@ `# delete line before match ` ; \
+	sed -i "s|viewBox=.*\$$|$${VAL}|" $@ # adjust SVG viewbox for typesetting with latex ;-)
 
 slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same pixel size for all CZIs
 	xy_r=` BF_MAX_MEM=1g showinf  -option zeissczi.attachments false  -no-upgrade -nopix $(word 2,$^) | awk  '/Scaling.Distance.Value/ {printf("%e ", $$3)}' ` ; \
@@ -118,20 +169,23 @@ slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same p
 	echo "$$list" >> $@
 
 
-%_smROI.mhd : %.mhd
+%_smROI.mha : %.mhd
 	std-mean_ROI_SBS $< $@  500 500 0  2500 2500 ` awk '/DimSize/ {print $$5}' $< `
 
-%_pro-mean+x.png : %.mhd
+%_pro-mean+x.png : %.mha
 	project $< $@  0 0 0
 
-%_pro-mean+y.png : %.mhd
+%_pro-mean+y.png : %.mha
 	project $< $@  0 0 1
 
-%_pro-mean+z.png : %.mhd
+%_pro-mean+z.png : %.mha
 	project $< $@  0 0 2
 
-%_pro-std+z.png : %.mhd
+%_pro-std+z.png : %.mha
 	project $< $@  0 5 2
+
+%_8b.mha : %.mha
+	shift-scale_window_UI8 $< $@ 100  0  2000
 
 
 all.raw : slides/
@@ -175,7 +229,7 @@ all.slicesOrdered : slides/slideOrder.lst
 		bfconvert -no-upgrade -overwrite -series $(S) $< $*.png   &> $*.out
 	touch $@
 
-slides/ord/%.xf : slides/ord/%.png # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
+%.xf : %.png # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
 	if [ -n "$(BACKWARDS)" ]; then \
 	fi=`find $(dir $<) -name '*[0-9].png' | sort | grep -A1 $< | sed -n '2s/\\.png//p' | sed 's|ord/|ord/reg/|' ` ; \
 	else \
@@ -217,3 +271,14 @@ export BASE_PF
 
 %.pf.txt : # %.txt will be deleted as intermediate (.SECONDARY nor .PRECIOUS work with wildcards) # not dependent on the use of a man. init. tra. (MiT), but MiT should be tried first because later changes to defaults in parameterFile.txt (e.g. higher res) are not overwritten by MiT
 	echo "$$BASE_PF" > $@
+
+%.png : $$(call base_,%).mha # even though functions are expanded immediately, this needs to be in SECONDEXPANSION for % to be expanded: http://stackoverflow.com/questions/9526295/how-to-call-functions-within-order-only-prerequisites#9533980
+	@echo "process $+ to $*"
+	$(eval pos= $(subst $(basename $+),,$*))
+	$(eval pos= $(subst _,,$(pos)))
+
+	$(eval sep= $(subst @, ,$(pos)))
+	$(eval normal= $(word 1, $(sep)))
+	$(eval sliceN= $(word 2, $(sep)))
+
+	slice $+ $@ 0 $(normal) $(sliceN)
