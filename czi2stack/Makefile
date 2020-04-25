@@ -109,8 +109,8 @@ slides/slideOrder.lst : slides/ all.slices
 
 %/reg/ %/recRegStack.out : parameterFile.txt all.slicesOrdered
 	startSlice=` cd slides/ord/ && ls *_K2_0070_s00_01.png` && \
-	skipSlices=` cd slides/ord/ && cat ../../lostSlieds.lst | xargs -I@ sh -c 'ls *@.png' ` && \
-	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/$*/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:34cb4e3c \
+	skipSlices=` cd slides/ord/ && cat ../skipImgs.lst | xargs -I@ sh -c 'ls *@.png' ` && \
+	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/$*/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:961205f4 \
 	recRegStack.py -i "*.png" -o reg/ -p ../../$< -m 1000 2000 1000 2000 -n 32 -s $$startSlice -S $$skipSlices -f -b | tee $*/recRegStack.out
 
 %/recRegStack.dat : %/recRegStack.out
