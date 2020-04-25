@@ -29,6 +29,8 @@ ITK?=$(SUBMODDIR)/ITK-CLIs/build
 
 export VGLRUN?=vglrun
 
+export IMOD_DIR:= $(IMOD)
+
 export PATH:= $(BF):$(PATH)
 export PATH:= $(IJ):$(PATH)
 export PATH:= $(IMOD)/bin:$(PATH)
@@ -254,7 +256,7 @@ all.slicesOrdered : slides/slideOrder.lst
 	fi ; \
 	mi=`echo $< | sed 's/\\.png//'` ; \
 	echo "$$fi $$mi" ; \
-	$(convertIM) $$mi.png $$mi.tif && \
+	$(convertIM) $$mi.png -grayscale Average $$mi.tif && \
 	tif2mrc $$fi.tif $$mi.tif $<.mrc && \
 	rm $$mi.tif && \
 	$(VGLRUN) midas -D -s 0,3000 $<.mrc $@ # -D: do not run in background
