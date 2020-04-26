@@ -29,6 +29,8 @@ ITK?=$(SUBMODDIR)/ITK-CLIs/build
 
 export VGLRUN?=vglrun
 
+export IMOD_DIR:= $(IMOD)
+
 export PATH:= $(BF):$(PATH)
 export PATH:= $(IJ):$(PATH)
 export PATH:= $(IMOD)/bin:$(PATH)
@@ -99,8 +101,8 @@ slides/slideOrder.lst : slides/ all.slices
 
 %/reg/ %/recRegStack.out : parameterFile.txt all.slicesOrdered
 	startSlice=` cd slides/ord/ && ls *_K2_0070_s00_01.png` && \
-	skipSlices=` cd slides/ord/ && cat ../../lostSlieds.lst | xargs -I@ sh -c 'ls *@.png' ` && \
-	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/$*/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:34cb4e3c \
+	skipSlices=` cd slides/ord/ && cat ../skipImgs.lst | xargs -I@ sh -c 'ls *@.png' ` && \
+	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/$*/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:961205f4 \
 	recRegStack.py -i "*.png" -o reg/ -p ../../$< -n 32 -s $$startSlice -S $$skipSlices -f -b | tee $*/recRegStack.out
 
 %/recRegStack.dat : %/recRegStack.out
@@ -237,7 +239,7 @@ all.slicesOrdered : slides/slideOrder.lst
 	fi ; \
 	mi=`echo $< | sed 's/\\.png//'` ; \
 	echo "$$fi $$mi" ; \
-	$(convertIM) $$mi.png $$mi.tif && \
+	$(convertIM) $$mi.png -grayscale Average $$mi.tif && \
 	tif2mrc $$fi.tif $$mi.tif $<.mrc && \
 	rm $$mi.tif && \
 	$(VGLRUN) midas -D -s 0,3000 $<.mrc $@ # -D: do not run in background
