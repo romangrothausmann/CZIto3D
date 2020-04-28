@@ -75,7 +75,7 @@ all : slides/ord/recRegStack.svg # plot stats in relation to center slices along
 
 clean:
 	-cd slides/ && \
-	rm -v *.out *.czi *.info *.th *.tif *.slices *.tiff
+	rm -v *.out *.czi *.info *.th *.tif *.slices *.png
 
 dist-clean : clean
 	-cd slides/ && \
@@ -107,13 +107,13 @@ dist-clean : clean
 	fi
 
 slides/slideOrder.lst : slides/ all.slices
-	ls -1 slides/*.tiff | sed 's|.*/||' > $@
+	ls -1 slides/*.png | sed 's|.*/||' > $@
 
 %/reg/ %/recRegStack.out : parameterFile.txt all.slicesOrdered
-	startSlice=` cd slides/ord/ && ls *_K2_0070_s00_01.tiff` && \
-	skipSlices=` cd slides/ord/ && cat ../skipImgs.lst | xargs -I@ sh -c 'ls *@.tiff' ` && \
+	startSlice=` cd slides/ord/ && ls *_K2_0070_s00_01.png` && \
+	skipSlices=` cd slides/ord/ && cat ../skipImgs.lst | xargs -I@ sh -c 'ls *@.png' ` && \
 	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/$*/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:961205f4 \
-	recRegStack.py -i "*.tiff" -o reg/ -p ../../$< -m 1000 2000 1000 2000 -n 32 -s $$startSlice -S $$skipSlices -f -b | tee $*/recRegStack.out
+	recRegStack.py -i "*.png" -o reg/ -p ../../$< -m 1000 2000 1000 2000 -n 32 -s $$startSlice -S $$skipSlices -f -b | tee $*/recRegStack.out
 
 %/recRegStack.dat : %/recRegStack.out
 	awk 'match($$4, /[0-9]+/) {print substr($$4, RSTART, RLENGTH), $$(NF-1), $$0 ~ "[^pf].txt"?1:0, $$0 ~ "pf.txt"?1:0 }' $< > $@ # https://www.gnu.org/software/gawk/manual/html_node/String-Functions.html#index-match_0028_0029-function
@@ -245,18 +245,18 @@ all.slicesOrdered : slides/slideOrder.lst
 	-awk  'NR>2 { printf("%d,%d,$(w),$(h) %02d\n", $$1*$(s)-($(w)/2) < 0 ? 0 : $$1*$(s)-($(w)/2) > $(W)-$(w) ? $(W)-$(w) : $$1*$(s)-($(w)/2), $$2*$(s)-($(h)/2) < 0 ? 0 : $$2*$(s)-($(h)/2) > $(H)-$(h) ? $(H)-$(h) : $$2*$(s)-($(h)/2), NR-2 ) }' $(lastword $^) \
 	| parallel --colsep ' ' --eta -j$(JOBS) --retries 3 -u ' \
 		BF_MAX_MEM=10g  \
-		bfconvert -no-upgrade -overwrite -series $(S) -crop {1} $< $*_{2}.tiff   &> $*_{2}.out '
+		bfconvert -no-upgrade -overwrite -series $(S) -crop {1} $< $*_{2}.png   &> $*_{2}.out '
 	touch $@
 
-%.xf : %.tiff # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
+%.xf : %.png # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
 	if [ -n "$(BACKWARDS)" ]; then \
-	fi=`find $(dir $<) -name '*[0-9].tiff' | sort | grep -A1 $< | sed -n '2s/\\.tiff//p' | sed 's|ord/|ord/reg/|' ` ; \
+	fi=`find $(dir $<) -name '*[0-9].png' | sort | grep -A1 $< | sed -n '2s/\\.png//p' | sed 's|ord/|ord/reg/|' ` ; \
 	else \
-	fi=`find $(dir $<) -name '*[0-9].tiff' | sort | grep -B1 $< | sed -n '1s/\\.tiff//p' | sed 's|ord/|ord/reg/|' ` ; \
+	fi=`find $(dir $<) -name '*[0-9].png' | sort | grep -B1 $< | sed -n '1s/\\.png//p' | sed 's|ord/|ord/reg/|' ` ; \
 	fi ; \
-	mi=`echo $< | sed 's/\\.tiff//'` ; \
+	mi=`echo $< | sed 's/\\.png//'` ; \
 	echo "$$fi $$mi" ; \
-	$(convertIM) $$mi.tiff -grayscale Average $$mi.tif && \
+	$(convertIM) $$mi.png -grayscale Average $$mi.tif && \
 	tif2mrc $$fi.tif $$mi.tif $<.mrc && \
 	rm $$mi.tif && \
 	$(VGLRUN) midas -D -s 0,3000 $<.mrc $@ # -D: do not run in background
