@@ -238,7 +238,7 @@ all.slicesOrdered : slides/slideOrder.lst
 	$(eval pos= $(subst $(basename $<),,$*))
 	$(eval pos= $(subst _s,,$(pos)))
 	$(eval s= $(shell awk '$$1==$(pos){print 2^($$8 - 1)}' $(word 2,$^)))
-	$(eval S= $(shell awk '$$1==$(pos){print $$6}' $(word 2,$^)))
+	$(eval S= $(shell awk '$$1==$(pos){print 0 + $$6}' $(word 2,$^))) # adjust to desired extraction pyramid level, e.g. 2nd level (bin by 2): 1 + $$6
 	$(eval W= $(shell awk '$$1==$(pos){print $$2}' $(word 2,$^)))
 	$(eval H= $(shell awk '$$1==$(pos){print $$3}' $(word 2,$^)))
 	echo $(pos) $(s) $(S) $(W) $(H)
