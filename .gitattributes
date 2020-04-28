@@ -1,6 +1,7 @@
 ## special diffs
 *.tif     diff=image
 *.png	  diff=image
+*.out	  diff=lst
 
 ## annex conf https://git-annex.branchable.com/tips/largefiles/
 *         annex.largefiles=nothing
