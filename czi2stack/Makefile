@@ -266,18 +266,18 @@ all.slicesOrdered : slides/slideOrder.lst
 	xfinverse $< $@
 
 define BASE_TRA
-(CenterOfRotationPoint $(halfex) )
-(NumberOfParameters 6 )
 (Transform "AffineTransform" )
-(TransformParameters 
+(NumberOfParameters 6 )
+(CenterOfRotationPoint $(halfex) )
 endef
 export BASE_TRA
 
 %.txt : %.xf.inv # XF order the same as of elstix (see eq. 2.14 elastix-manual and FILES under man midas) but different transform conventions (mi <-> fi and y-direction)
 	cat $^
+	echo "$$BASE_TRA" > $@ # using multi-line vare here http://stackoverflow.com/questions/649246/is-it-possible-to-create-a-multi-line-string-variable-in-a-makefile#649462
 	A=`awk 'NR==2 {print $$1, $$3, $$2, $$4}' $<` && \
 	T=`awk 'NR==2 {print $$5, -$$6}' $< # - due to different y-convention ` && \
-	echo "$$BASE_TRA $$A $$T )" > $@ # no heredoc possible, but: http://stackoverflow.com/questions/649246/is-it-possible-to-create-a-multi-line-string-variable-in-a-makefile#649462
+	echo "(TransformParameters $$A $$T )" >> $@ # heredoc would be possible with .ONESHELL: https://stackoverflow.com/questions/5873025/heredoc-in-a-makefile#36148655  https://www.gnu.org/software/make/manual/make.html#index-_002eONESHELL_002c-use-of
 	-rm $^ # remove input files (not always cleaned by make) such that make will start with midas again
 
 define BASE_PF
