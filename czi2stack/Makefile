@@ -58,10 +58,6 @@ JOBS = 32
 RAWDIR?= ../../raw/
 
 
-extent?=  6000 6000
-w=$(word 1, $(extent))
-h=$(word 2, $(extent))
-
 .PHONY : all clean dist-clean
 
 
@@ -156,11 +152,13 @@ export GNUPLOT_CMD
 slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same pixel size for all CZIs
 	xy_r=` BF_MAX_MEM=1g showinf  -option zeissczi.attachments false  -no-upgrade -nopix $(word 2,$^) | awk  '/Scaling.Distance.Value/ {printf("%e ", $$3)}' ` ; \
 	list=` cd $< ; ls -1 *.tif ` ; \
+	l1fn=` ls -1 $</*.tif | head -n1 ` ; \
+	size=` $(convertIM) $$l1fn -format '%w %h' info: ` ; \
 	numb=` echo "$$list" | wc -l ` ; \
 	echo "ObjectType = Image" > $@ ; \
 	echo "NDims = 3" >> $@ ; \
 	echo "ElementSpacing = $$xy_r 1.5" >> $@ ; \
-	echo "DimSize = $(extent) $$numb" >> $@ ; \
+	echo "DimSize = $$size $$numb" >> $@ ; \
 	echo "ElementNumberOfChannels = 1" >> $@ ; \
 	echo "ElementType = MET_USHORT" >> $@ ; \
 	echo "ElementByteOrderMSB = False" >> $@ ; \
