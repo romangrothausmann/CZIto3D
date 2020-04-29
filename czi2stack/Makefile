@@ -58,12 +58,9 @@ JOBS = 32
 RAWDIR?= ../../raw/
 
 
-include gmsl
-
 extent?=  6000 6000
 w=$(word 1, $(extent))
 h=$(word 2, $(extent))
-halfex:= $(call map,halve,$(extent))
 
 .PHONY : all clean dist-clean
 
@@ -223,7 +220,7 @@ all.slicesOrdered : slides/slideOrder.lst
 	$(eval pos= $(subst $(basename $<),,$*))
 	$(eval pos= $(subst _s,,$(pos)))
 	$(eval s= $(shell awk '$$1==$(pos){print 2^($$8 - 1)}' $(word 2,$^)))
-	$(eval S= $(shell awk '$$1==$(pos){print $$6}' $(word 2,$^)))
+	$(eval S= $(shell awk '$$1==$(pos){print 0 + $$6}' $(word 2,$^))) # adjust to desired extraction pyramid level, e.g. 2nd level (bin by 2): 1 + $$6
 	$(eval W= $(shell awk '$$1==$(pos){print $$2}' $(word 2,$^)))
 	$(eval H= $(shell awk '$$1==$(pos){print $$3}' $(word 2,$^)))
 	echo $(pos) $(s) $(S) $(W) $(H)
@@ -231,7 +228,7 @@ all.slicesOrdered : slides/slideOrder.lst
 		bfconvert -no-upgrade -overwrite -series $(S) $< $*.png   &> $*.out
 	touch $@
 
-%.xf : %.png # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
+%.xf %.siz : %.png # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
 	if [ -n "$(BACKWARDS)" ]; then \
 	fi=`find $(dir $<) -name '*[0-9].png' | sort | grep -A1 $< | sed -n '2s/\\.png//p' | sed 's|ord/|ord/reg/|' ` ; \
 	else \
@@ -241,25 +238,28 @@ all.slicesOrdered : slides/slideOrder.lst
 	echo "$$fi $$mi" ; \
 	$(convertIM) $$mi.png -grayscale Average $$mi.tif && \
 	tif2mrc $$fi.tif $$mi.tif $<.mrc && \
-	rm $$mi.tif && \
-	$(VGLRUN) midas -D -s 0,3000 $<.mrc $@ # -D: do not run in background
+	$(convertIM) $$fi.tif -format '%[fx:w/2] %[fx:h/2]\n' info: > $*.siz && \
+	rm $$mi.tif
+	$(VGLRUN) midas -D -s 0,3000 $<.mrc $*.xf # -D: do not run in background
 	rm $<.mrc # MRC only created for midas
 
 %.xf.inv : %.xf
 	xfinverse $< $@
 
 define BASE_TRA
-(CenterOfRotationPoint $(halfex) )
-(NumberOfParameters 6 )
 (Transform "AffineTransform" )
-(TransformParameters 
+(NumberOfParameters 6 )
 endef
 export BASE_TRA
 
-%.txt : %.xf %.xf.inv # XF order the same as of elstix (see eq. 2.14 elastix-manual and FILES under man midas) but different transform conventions (mi <-> fi and y-direction)
-	A=`awk 'NR==2 {print $$1, $$2, $$3, $$4}' $<` && \
-	T=`awk 'NR==2 {print $$5, -$$6}' $(word 2, $^) # - due to different y-convention ` && \
-	echo "$$BASE_TRA $$A $$T )" > $@ # no heredoc possible, but: http://stackoverflow.com/questions/649246/is-it-possible-to-create-a-multi-line-string-variable-in-a-makefile#649462
+%.txt : %.xf.inv %.siz # XF order the same as of elstix (see eq. 2.14 elastix-manual and FILES under man midas) but different transform conventions (mi <-> fi and y-direction)
+	cat $^
+	echo "$$BASE_TRA" > $@ # using multi-line vare here http://stackoverflow.com/questions/649246/is-it-possible-to-create-a-multi-line-string-variable-in-a-makefile#649462
+	S=`cat $(word 2,$^)` && \
+	echo "(CenterOfRotationPoint $$S )" >> $@ 
+	A=`awk 'NR==2 {print $$1, $$3, $$2, $$4}' $<` && \
+	T=`awk 'NR==2 {print $$5, -$$6}' $< # - due to different y-convention ` && \
+	echo "(TransformParameters $$A $$T )" >> $@ # heredoc would be possible with .ONESHELL: https://stackoverflow.com/questions/5873025/heredoc-in-a-makefile#36148655  https://www.gnu.org/software/make/manual/make.html#index-_002eONESHELL_002c-use-of
 	-rm $^ # remove input files (not always cleaned by make) such that make will start with midas again
 
 define BASE_PF
