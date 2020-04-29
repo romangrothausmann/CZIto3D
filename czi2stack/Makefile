@@ -58,12 +58,9 @@ JOBS = 32
 RAWDIR?= ../../raw/
 
 
-include gmsl
-
 extent?=  6000 6000
 w=$(word 1, $(extent))
 h=$(word 2, $(extent))
-halfex:= $(call map,halve,$(extent))
 
 .PHONY : all clean dist-clean
 
