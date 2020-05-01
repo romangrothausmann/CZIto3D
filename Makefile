@@ -24,7 +24,7 @@ export PATH:= $(ITK)/build:$(PATH)
 
 ### check existance of external programs
 ## http://stackoverflow.com/questions/5618615/check-if-a-program-exists-from-a-makefile#25668869
-ITKEXE = project std-mean_ROI_SBS shift-scale_window_UI8 slice
+ITKEXE = project std-mean_ROI_SBS resample-iso shift-scale_window_UI8 slice
 ## external programs
 
 
