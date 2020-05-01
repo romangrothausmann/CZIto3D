@@ -195,6 +195,9 @@ slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same p
 %_8b.mha : %.mha
 	shift-scale_window_UI8 $< $@ 100  0  2000
 
+%_cr.png : %.png
+	$(convertIM) $< -gravity Center -crop 1000x+0+0 +repage -rotate 270 $@
+
 
 all.raw : slides/
 	cd slides && \
