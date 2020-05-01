@@ -93,10 +93,9 @@ slides/slideOrder.lst : slides/ all.slices
 	ls -1 slides/*.png | sed 's|.*/||' > $@
 
 %/reg/ %/recRegStack.out : parameterFile.txt all.slicesOrdered
-	startSlice=` cd slides/ord/ && ls *_K2_0070_s00_01.png` && \
-	skipSlices=` cd slides/ord/ && cat ../skipImgs.lst | xargs -I@ sh -c 'ls *@.png' ` && \
-	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/$*/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:961205f4 \
-	recRegStack.py -i "*.png" -o reg/ -p ../../$< -n 32 -s $$startSlice -S $$skipSlices -f -b | tee $*/recRegStack.out
+	skipSlices=` cd slides/ord/ && cat ../skipImgs.lst | xargs -I@ sh -c 'ls *@.png' | xargs ` && \
+	docker run -t --rm --user `id -u`:`id -g` --entrypoint /bin/bash -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/$*/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:575bc43d -c \
+	" recRegStack.py -i 000{410..448}*.png -o reg/ -p ../../$< -n 32 -s *_111_s02.png -S $$skipSlices -f -b " | tee $*/recRegStack.out
 
 %/recRegStack.dat : %/recRegStack.out
 	awk 'match($$4, /[0-9]+/) {print substr($$4, RSTART, RLENGTH), $$(NF-1), $$0 ~ "[^pf].txt"?1:0, $$0 ~ "pf.txt"?1:0 }' $< > $@ # https://www.gnu.org/software/gawk/manual/html_node/String-Functions.html#index-match_0028_0029-function
