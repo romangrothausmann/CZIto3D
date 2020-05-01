@@ -208,7 +208,7 @@ all.slices : slides/ all.thumbs
 all.slicesOrdered : slides/slideOrder.lst
 	cd slides/ && \
 	mkdir -p ord/ && \
-	parallel --eta -j1 'ln -sf ../{} ord/`printf "%06d" {#}`_{}' :::: ../$<
+	parallel --eta '$(convertIM) {}  -grayscale Average -fill white -opaque black -negate ord/`printf "%06d" {#}`_{}' :::: ../$<
 	touch $@
 
 .SECONDEXPANSION:
