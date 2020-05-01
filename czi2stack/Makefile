@@ -225,7 +225,7 @@ all.slices : slides/ all.coords
 all.slicesOrdered : slides/slideOrder.lst
 	cd slides/ && \
 	mkdir -p ord/ && \
-	parallel --eta -j1 'ln -sf ../{} ord/`printf "%06d" {#}`_{}' :::: ../$<
+	parallel --eta -j1 '$(convertIM) {}  -fill white -opaque black  ord/`printf "%06d" {#}`_{}' :::: ../$<
 	touch $@
 
 .SECONDEXPANSION:
