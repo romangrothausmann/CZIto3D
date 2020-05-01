@@ -42,7 +42,7 @@ EXECUTABLES+= ImageJ-linux64
 EXECUTABLES+= $(VGLRUN)
 EXECUTABLES+= tif2mrc midas xfinverse
 EXECUTABLES+= convert mogrify
-EXECUTABLES+= project std-mean_ROI_SBS shift-scale_window_UI8 slice
+EXECUTABLES+= project std-mean_ROI_SBS resample-iso shift-scale_window_UI8 slice
 
 K:= $(foreach exec,$(EXECUTABLES),\
 	$(if $(shell PATH=$(PATH) which $(exec)),some string,$(error "No $(exec) in PATH")))
@@ -143,7 +143,7 @@ unset print # flush
 endef
 export GNUPLOT_CMD
 
-%/recRegStack.svg : %/recRegStack.dat %/reg/$(BN)_reg_smROI_8b_y@1500_cr.png %/reg/$(BN)_reg_smROI_8b_x@1500_cr.png
+%/recRegStack.svg : %/recRegStack.dat %/reg/$(BN)_reg_smROI_rsi_8b_y@1500_cr.png %/reg/$(BN)_reg_smROI_rsi_8b_x@1500_cr.png
 	VAL=` gnuplot -e "datafile='$<'; XZimgfile='$(word 2, $^)'; YZimgfile='$(word 3, $^)'; outfile='$@';" <(echo "$$GNUPLOT_CMD") 2> $*/recRegStack.stat ` ; \
 	sed -i -n '/viewBox=/{x;d;};1h;1!{x;p;};${x;p;}' $@ `# delete line before match ` ; \
 	sed -i "s|viewBox=.*\$$|$${VAL}|" $@ # adjust SVG viewbox for typesetting with latex ;-)
@@ -168,6 +168,9 @@ slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same p
 %_smROI.mha : %.mhd
 	std-mean_ROI_SBS $< $@  500 500 0  2500 2500 ` awk '/DimSize/ {print $$5}' $< `
 
+%_rsi.mha : %.mha
+	resample-iso $+ $@ 100 1 1.5 # voxel size should equal slice thickness (z-depth)
+
 %_pro-mean+x.png : %.mha
 	project $< $@  0 0 0
 
@@ -182,6 +185,9 @@ slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same p
 
 %_8b.mha : %.mha
 	shift-scale_window_UI8 $< $@ 100  0  2000
+
+%_cr.png : %.png
+	$(convertIM) $< -gravity Center -crop 1000x+0+0 +repage -rotate 270 $@
 
 
 all.raw : slides/
