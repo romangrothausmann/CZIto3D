@@ -45,8 +45,8 @@
 // (UseRandomSampleRegion "true")
 // (SampleRegionSize 50 50)
 // (ImageSampler "Full")
-// (ImageSampler "Grid")
-// (SampleGridSpacing 16 16  8 8  4 4  2 2)
+// (ImageSampler "Grid") // can be very slow probably due to many samples
+// (SampleGridSpacing  2 2  4 4  8 8  16 16) // low res should have low spacing
 
 (BSplineInterpolationOrder 1)
 (FinalBSplineInterpolationOrder 3)
