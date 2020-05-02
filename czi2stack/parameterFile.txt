@@ -12,7 +12,7 @@
 (MovingImagePyramid "MovingSmoothingImagePyramid")
 
 (Optimizer "AdaptiveStochasticGradientDescent")
-// (Optimizer "RegularStepGradientDescent")
+// (Optimizer "RegularStepGradientDescent")  // not in SE by default!
 
 (Transform "EulerTransform")
 // (Metric "AdvancedMattesMutualInformation")
@@ -32,21 +32,22 @@
 
 
 (MaximumNumberOfIterations 1000 500 300 200)
-(MaximumStepLength 100 5 3 2)
-(MinimumStepLength 0.1 0.005 0.001 0.0001)
-(MinimumGradientMagnitude 0.00001 0.00001 0.0001)
+(MaximumStepLength   10   5   3   2)       // used by AdaptiveStochasticGradientDescent and RegularStepGradientDescent
+// (MinimumStepLength 0.1 0.005 0.001 0.0001)           // only used by RegularStepGradientDescent
+// (MinimumGradientMagnitude 0.00001 0.00001 0.0001)    // only used by RegularStepGradientDescent
 (RelaxationFactor 0.99)
 
 (NumberOfSpatialSamples 4000)
 // (NewSamplesEveryIteration "true")
 (ImageSampler "Random")
-// (ImageSampler "RandomSparseMask")
+// (ImageSampler "RandomSparseMask")  // use to avoid: "Could not find enough image samples within reasonable time. Probably the mask is too small" https://github.com/SuperElastix/elastix/wiki/FAQ#i-am-getting-the-error-message-could-not-find-enough-image-samples-within-reasonable-time-probably-the-mask-is-too-small-what-can-i-do-about-it
 // (ImageSampler "RandomCoordinate")
+(ErodeFixedMask "false")              // use with "Random" sampler to avoid: "Could not find enough image samples within reasonable time. Probably the mask is too small" https://github.com/SuperElastix/SimpleElastix/issues/198#issuecomment-578122776
 // (UseRandomSampleRegion "true")
 // (SampleRegionSize 50 50)
 // (ImageSampler "Full")
-// (ImageSampler "Grid")
-// (SampleGridSpacing 16 16  8 8  4 4  2 2)
+// (ImageSampler "Grid") // can be very slow probably due to many samples
+// (SampleGridSpacing  2 2  4 4  8 8  16 16) // low res should have low spacing
 
 (BSplineInterpolationOrder 1)
 (FinalBSplineInterpolationOrder 3)
