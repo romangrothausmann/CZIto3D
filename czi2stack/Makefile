@@ -120,7 +120,7 @@ set output outfile
 
 # set margin 0, 0, 0, 0 # fits plot to SVG viewbox BUT also surpresses anything outside, e.g. labels etc; therefore use workaround below
 
-stats datafile u 2
+stats datafile u 1:2
 metricScale=1
 #XZy=-900
 #YZy=-2000
@@ -128,9 +128,9 @@ metricScale=1
 #set samples 1000
 set xlabel "slice \\\\# = z [µm]"
 set ylabel sprintf("metric value [*%d]", metricScale) offset 0,12
-set label "xz-slice" at STATS_records/2,XZy+550 center
-set label "yz-slice" at STATS_records/2,YZy+550 center
-#set xrange [0:STATS_records]
+set label "xz-slice" at (STATS_max_x-STATS_min_x)/2+STATS_min_x,XZy+550 center
+set label "yz-slice" at (STATS_max_x-STATS_min_x)/2+STATS_min_x,YZy+550 center
+set xrange [STATS_min_x:STATS_max_x]
 #ymax=1000
 #set yrange [-2.5*ymax:ymax]
 #set ytics 0,200,1000  # no tics for neg. y-axis as kdensity relative
@@ -142,8 +142,8 @@ plot datafile u 1:($$2*metricScale) w lines  lc "black" t "metric", \
      "" u 1:($$4==1?$$2*metricScale:1/0) w points pt 2 lc "red"   t "iPF", \
      "" u 1:(-0.5*ymax*$$3) smooth kdensity bandwidth sigma with filledcurves y=0 t "" lc rgb "#8800ff00", \
      "" u 1:(-0.5*ymax*$$4) smooth kdensity bandwidth sigma with filledcurves y=0 t "" lc rgb "#88ff0000", \
-     XZimgfile binary filetype=png center=(STATS_records/2, XZy) w rgbimage ti '', \
-     YZimgfile binary filetype=png center=(STATS_records/2, YZy) w rgbimage ti ''
+     XZimgfile binary filetype=png center=((STATS_max_x-STATS_min_x)/2+STATS_min_x, XZy) w rgbimage ti '', \
+     YZimgfile binary filetype=png center=((STATS_max_x-STATS_min_x)/2+STATS_min_x, YZy) w rgbimage ti ''
 
 unset output # closes output file
 ## workaround output for sed to adjust SVG viewbox: sed -i "s|viewBox=.*\$|`gnuplot ...`|" outfile
