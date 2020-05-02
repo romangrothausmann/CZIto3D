@@ -40,8 +40,9 @@
 (NumberOfSpatialSamples 4000)
 // (NewSamplesEveryIteration "true")
 (ImageSampler "Random")
-// (ImageSampler "RandomSparseMask")
+// (ImageSampler "RandomSparseMask")  // use to avoid: "Could not find enough image samples within reasonable time. Probably the mask is too small" https://github.com/SuperElastix/elastix/wiki/FAQ#i-am-getting-the-error-message-could-not-find-enough-image-samples-within-reasonable-time-probably-the-mask-is-too-small-what-can-i-do-about-it
 // (ImageSampler "RandomCoordinate")
+(ErodeFixedMask "false")              // use with "Random" sampler to avoid: "Could not find enough image samples within reasonable time. Probably the mask is too small" https://github.com/SuperElastix/SimpleElastix/issues/198#issuecomment-578122776
 // (UseRandomSampleRegion "true")
 // (SampleRegionSize 50 50)
 // (ImageSampler "Full")
