@@ -66,7 +66,7 @@ h=$(word 2, $(extent))
 
 
 all : slides/ord/reg/ # registration
-all : slides/ord/reg/$(BN)_reg_smROI_8b.mha # normalized 3D stack
+all : slides/ord/reg/$(BN)_reg_smROI_rsi_8b.mha # normalized 3D stack
 all : slides/ord/reg/$(BN)_reg_smROI_pro-mean+z.png # projection
 all : slides/ord/recRegStack.svg # plot stats in relation to center slices along z-axis
 
