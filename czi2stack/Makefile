@@ -121,12 +121,13 @@ set output outfile
 # set margin 0, 0, 0, 0 # fits plot to SVG viewbox BUT also surpresses anything outside, e.g. labels etc; therefore use workaround below
 
 stats datafile u 2
+metricScale=1
 #XZy=-900
 #YZy=-2000
 #sigma=10
 #set samples 1000
 set xlabel "slice \\\\# = z [µm]"
-set ylabel "metric value [*100]" offset 0,12
+set ylabel sprintf("metric value [*%d]", metricScale) offset 0,12
 set label "xz-slice" at STATS_records/2,XZy+550 center
 set label "yz-slice" at STATS_records/2,YZy+550 center
 #set xrange [0:STATS_records]
@@ -136,9 +137,9 @@ set label "yz-slice" at STATS_records/2,YZy+550 center
 set size ratio -1
 ## https://stackoverflow.com/questions/6564561/gnuplot-conditional-plotting-plot-col-acol-b-if-col-c-x#6565152
 ## kdensity and violin plots: http://gnuplot.sourceforge.net/demo/violinplot.html
-plot datafile u 1:($$2/100) w lines  lc "black" t "metric", \
-     "" u 1:($$3==1?$$2/100:1/0) w points pt 1 lc "green" t "mIT", \
-     "" u 1:($$4==1?$$2/100:1/0) w points pt 2 lc "red"   t "iPF", \
+plot datafile u 1:($$2*metricScale) w lines  lc "black" t "metric", \
+     "" u 1:($$3==1?$$2*metricScale:1/0) w points pt 1 lc "green" t "mIT", \
+     "" u 1:($$4==1?$$2*metricScale:1/0) w points pt 2 lc "red"   t "iPF", \
      "" u 1:(-0.5*ymax*$$3) smooth kdensity bandwidth sigma with filledcurves y=0 t "" lc rgb "#8800ff00", \
      "" u 1:(-0.5*ymax*$$4) smooth kdensity bandwidth sigma with filledcurves y=0 t "" lc rgb "#88ff0000", \
      XZimgfile binary filetype=png center=(STATS_records/2, XZy) w rgbimage ti '', \
