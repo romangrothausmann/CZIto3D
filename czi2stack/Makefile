@@ -142,8 +142,8 @@ plot datafile u 1:($$2*metricScale) w lines  lc "black" t "metric", \
      "" u 1:($$4==1?$$2*metricScale:1/0) w points pt 2 lc "red"   t "iPF", \
      "" u 1:(-0.5*ymax*$$3) smooth kdensity bandwidth sigma with filledcurves y=0 t "" lc rgb "#8800ff00", \
      "" u 1:(-0.5*ymax*$$4) smooth kdensity bandwidth sigma with filledcurves y=0 t "" lc rgb "#88ff0000", \
-     XZimgfile binary filetype=png center=((STATS_max_x-STATS_min_x)/2+STATS_min_x, XZy) w rgbimage ti '', \
-     YZimgfile binary filetype=png center=((STATS_max_x-STATS_min_x)/2+STATS_min_x, YZy) w rgbimage ti ''
+     XZimgfile binary filetype=png center=((STATS_max_x-STATS_min_x)/2+STATS_min_x, XZy) dx=2 dy=1 w rgbimage ti '', \
+     YZimgfile binary filetype=png center=((STATS_max_x-STATS_min_x)/2+STATS_min_x, YZy) dx=2 dy=1 w rgbimage ti ''
 
 unset output # closes output file
 ## workaround output for sed to adjust SVG viewbox: sed -i "s|viewBox=.*\$|`gnuplot ...`|" outfile
