@@ -106,6 +106,7 @@ slides/slideOrder.lst : slides/ all.slices
 	ls -1 slides/*.png | sed 's|.*/||' > $@
 
 %/recRegStack.out : all.slicesOrdered
+%/recRegStack.out : slides/skipImgs.lst
 %/recRegStack.out : parameterFile.txt # parameterFile_rigid.txt parameterFile_affine.txt
 	skipSlices=` cd slides/ord/ && cat ../skipImgs.lst | xargs -I@ sh -c 'ls *@.png' | xargs ` && \
 	docker run -t --rm --user `id -u`:`id -g` --entrypoint /bin/bash -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/$*/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:575bc43d -c \
@@ -252,11 +253,11 @@ all.slicesOrdered : slides/slideOrder.lst
 		bfconvert -no-upgrade -overwrite -series $(S) -crop {1} $< $*_{2}.png   &> $*_{2}.out '
 	touch $@
 
-%.xf %.siz : %.png # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
+%.xf %.siz : %.png slides/skipImgs.lst # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
 	if [ -n "$(BACKWARDS)" ]; then \
-	fi=`find $(dir $<) -name '*[0-9].png' | sort | grep -A1 $< | sed -n '2s/\\.png//p' | sed 's|ord/|ord/reg/|' ` ; \
+	fi=`find $(dir $<) -name '*[0-9].png' | grep -v -f slides/skipImgs.lst | sort | grep -A1 $< | sed -n '2s/\\.png//p' | sed 's|ord/|ord/reg/|' ` ; \
 	else \
-	fi=`find $(dir $<) -name '*[0-9].png' | sort | grep -B1 $< | sed -n '1s/\\.png//p' | sed 's|ord/|ord/reg/|' ` ; \
+	fi=`find $(dir $<) -name '*[0-9].png' | grep -v -f slides/skipImgs.lst | sort | grep -B1 $< | sed -n '1s/\\.png//p' | sed 's|ord/|ord/reg/|' ` ; \
 	fi ; \
 	mi=`echo $< | sed 's/\\.png//'` ; \
 	echo "$$fi $$mi" ; \
