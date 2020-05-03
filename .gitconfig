@@ -6,7 +6,7 @@
 ## ext. diff-cmd gets 6 (7) params: https://git-scm.com/docs/git#git-codeGITEXTERNALDIFFcode
 ## ext. diff-cmd apparently ignored by gitk
 [diff "image"]
-	command =  bash -c 'echo $@ && compare -metric AE -fuzz 0.5% $1 $4 png:- | montage -geometry +4+4 <( convert $1 -normalize -depth 8 png:- ) -  <( convert $4 -normalize -depth 8 png:- ) png:- | display -title "$4" -resize 1920x1080 - '
+	command =  git-annex diffdriver -- bash -c 'echo $@ && compare -metric AE -fuzz 0.5% $1 $4 png:- | montage -geometry +4+4 <( convert $1 -normalize -depth 8 png:- ) -  <( convert $4 -normalize -depth 8 png:- ) png:- | display -title "$4" -resize 1920x1080 - ' --
 
 [diff "lst"]
       wordRegex = "[^_/\\.[:space:]]+" # https://stackoverflow.com/questions/10482773/also-use-comma-as-a-word-separator-in-diff
