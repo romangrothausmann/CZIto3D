@@ -65,7 +65,6 @@ h=$(word 2, $(extent))
 .PHONY : all clean dist-clean
 
 
-all : slides/ord/reg/ # registration
 all : slides/ord/reg/$(BN)_reg_smROI_rsi_8b.mha # normalized 3D stack
 all : slides/ord/reg/$(BN)_reg_smROI_pro-mean+z.png # projection
 all : slides/ord/recRegStack.svg # plot stats in relation to center slices along z-axis
@@ -106,7 +105,7 @@ dist-clean : clean
 slides/slideOrder.lst : slides/ all.slices
 	ls -1 slides/*.png | sed 's|.*/||' > $@
 
-%/reg/ %/recRegStack.out : parameterFile.txt all.slicesOrdered
+%/recRegStack.out : parameterFile.txt all.slicesOrdered
 	skipSlices=` cd slides/ord/ && cat ../skipImgs.lst | xargs -I@ sh -c 'ls *@.png' | xargs ` && \
 	docker run -t --rm --user `id -u`:`id -g` --entrypoint /bin/bash -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/$*/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:575bc43d -c \
 	" recRegStack.py -i 000{410..448}*.png -o reg/ -p ../../$< -m 1000 2000 1000 2000 -n 32 -s *_111_s02.png -S $$skipSlices -f -b " | tee $*/recRegStack.out
@@ -163,9 +162,10 @@ export GNUPLOT_CMD
 	sed -i -n '/viewBox=/{x;d;};1h;1!{x;p;};${x;p;}' $@ `# delete line before match ` ; \
 	sed -i "s|viewBox=.*\$$|$${VAL}|" $@ # adjust SVG viewbox for typesetting with latex ;-)
 
-slides/ord/reg/%_reg.mhd : slides/ord/reg/ slides/%_0001.czi  # expecting same pixel size for all CZIs
-	xy_r=` BF_MAX_MEM=1g showinf  -option zeissczi.attachments false  -no-upgrade -nopix $(word 2,$^) | awk  '/Scaling.Distance.Value/ {printf("%e ", $$3)}' ` ; \
-	list=` cd $< ; ls -1 *.tif ` ; \
+slides/ord/reg/%_reg.mhd : slides/ord/recRegStack.out
+slides/ord/reg/%_reg.mhd : slides/%_0001.czi  # expecting same pixel size for all CZIs
+	xy_r=` BF_MAX_MEM=1g showinf  -option zeissczi.attachments false  -no-upgrade -nopix $< | awk  '/Scaling.Distance.Value/ {printf("%e ", $$3)}' ` ; \
+	list=` cd $(dir $@) ; ls -1 *.tif ` ; \
 	numb=` echo "$$list" | wc -l ` ; \
 	echo "ObjectType = Image" > $@ ; \
 	echo "NDims = 3" >> $@ ; \
