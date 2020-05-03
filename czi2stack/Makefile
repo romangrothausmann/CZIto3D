@@ -164,7 +164,7 @@ export GNUPLOT_CMD
 	sed -i -n '/viewBox=/{x;d;};1h;1!{x;p;};${x;p;}' $@ `# delete line before match ` ; \
 	sed -i "s|viewBox=.*\$$|$${VAL}|" $@ # adjust SVG viewbox for typesetting with latex ;-)
 
-slides/ord/reg/%_reg.mhd : slides/ord/recRegStack.out
+slides/ord/reg/$(BN)_reg.mhd : slides/ord/reg/%_reg.mhd : slides/ord/recRegStack.out
 slides/ord/reg/%_reg.mhd : slides/%_0001.czi  # expecting same pixel size for all CZIs
 	xy_r=` BF_MAX_MEM=1g showinf  -option zeissczi.attachments false  -no-upgrade -nopix $< | awk  '/Scaling.Distance.Value/ {printf("%e ", $$3)}' ` ; \
 	list=` cd $(dir $@) ; ls -1 *.tif ` ; \
