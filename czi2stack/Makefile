@@ -69,9 +69,12 @@ START_01= *_111_s02.png
 .PHONY : all clean dist-clean
 
 
-all : slides/ord/reg_01/$(BN)_reg_smROI_rsi_8b.mha # normalized 3D stack
-all : slides/ord/reg_01/$(BN)_reg_smROI_pro-mean+z.png # projection
-all : slides/ord/recRegStack_01.svg # plot stats in relation to center slices along z-axis
+all : reg01
+
+reg% : slides/ord/reg_%/$(BN)_reg_smROI_rsi_8b.mha # normalized 3D stack
+reg% : slides/ord/reg_%/$(BN)_reg_smROI_pro-mean+z.png # projection
+reg% : slides/ord/recRegStack_%.svg # plot stats in relation to center slices along z-axis
+	touch $@
 
 clean:
 	-cd slides/ && \
