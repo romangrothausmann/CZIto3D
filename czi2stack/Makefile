@@ -65,9 +65,9 @@ h=$(word 2, $(extent))
 .PHONY : all clean dist-clean
 
 
-all : slides/ord/reg/$(BN)_reg_smROI_rsi_8b.mha # normalized 3D stack
-all : slides/ord/reg/$(BN)_reg_smROI_pro-mean+z.png # projection
-all : slides/ord/recRegStack.svg # plot stats in relation to center slices along z-axis
+all : slides/ord/reg_01/$(BN)_reg_smROI_rsi_8b.mha # normalized 3D stack
+all : slides/ord/reg_01/$(BN)_reg_smROI_pro-mean+z.png # projection
+all : slides/ord/recRegStack_01.svg # plot stats in relation to center slices along z-axis
 
 clean:
 	-cd slides/ && \
@@ -105,14 +105,14 @@ dist-clean : clean
 slides/slideOrder.lst : slides/ all.slices
 	ls -1 slides/*.png | sed 's|.*/||' > $@
 
-%/recRegStack.out : all.slicesOrdered
-%/recRegStack.out : slides/skipImgs.lst
-%/recRegStack.out : parameterFile.txt # parameterFile_rigid.txt parameterFile_affine.txt
+slides/ord/recRegStack_%.out : all.slicesOrdered
+slides/ord/recRegStack_%.out : slides/skipImgs.lst
+slides/ord/recRegStack_%.out : parameterFile.txt # parameterFile_rigid.txt parameterFile_affine.txt
 	skipSlices=` cd slides/ord/ && cat ../skipImgs.lst | xargs -I@ sh -c 'ls *@.png' | xargs ` && \
-	docker run -t --rm --user `id -u`:`id -g` --entrypoint /bin/bash -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/$*/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:575bc43d -c \
-	" recRegStack.py -i 000{410..448}*.png -o reg/ -p $(addprefix ../../,$(filter parameterFile%.txt,$^)) -m 1000 2000 1000 2000 -n 32 -s *_111_s02.png -S $$skipSlices -f -b " | tee $*/recRegStack.out
+	docker run -t --rm --user `id -u`:`id -g` --entrypoint /bin/bash -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/slides/ord/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:575bc43d -c \
+	" recRegStack.py -i 000{410..448}*.png -o reg_$*/ -p $(addprefix ../../,$(filter parameterFile%.txt,$^)) -m 1000 2000 1000 2000 -n 32 -s *_111_s02.png -S $$skipSlices -f -b " | tee $@
 
-%/recRegStack.dat : %/recRegStack.out
+recRegStack_%.dat : recRegStack_%.out
 	awk 'match($$4, /[0-9]+/) {print substr($$4, RSTART, RLENGTH), $$(NF-1), $$0 ~ "[^pf].txt"?1:0, $$0 ~ "pf.txt"?1:0 }' $< > $@ # https://www.gnu.org/software/gawk/manual/html_node/String-Functions.html#index-match_0028_0029-function
 
 define GNUPLOT_CMD
@@ -159,13 +159,13 @@ unset print # flush
 endef
 export GNUPLOT_CMD
 
-%/recRegStack.svg : %/recRegStack.dat %/reg/$(BN)_reg_smROI_rsi_8b_y@1500_cr.png %/reg/$(BN)_reg_smROI_rsi_8b_x@1500_cr.png
-	VAL=` gnuplot -e "datafile='$<'; XZimgfile='$(word 2, $^)'; YZimgfile='$(word 3, $^)'; outfile='$@';" <(echo "$$GNUPLOT_CMD") 2> $*/recRegStack.stat ` ; \
+recRegStack_%.svg : recRegStack_%.dat reg_%/$(BN)_reg_smROI_rsi_8b_y@1500_cr.png reg_%/$(BN)_reg_smROI_rsi_8b_x@1500_cr.png
+	VAL=` gnuplot -e "datafile='$<'; XZimgfile='$(word 2, $^)'; YZimgfile='$(word 3, $^)'; outfile='$@';" <(echo "$$GNUPLOT_CMD") 2> $(dir $@)/recRegStack_$*.stat ` ; \
 	sed -i -n '/viewBox=/{x;d;};1h;1!{x;p;};${x;p;}' $@ `# delete line before match ` ; \
 	sed -i "s|viewBox=.*\$$|$${VAL}|" $@ # adjust SVG viewbox for typesetting with latex ;-)
 
-slides/ord/reg/$(BN)_reg.mhd : slides/ord/reg/%_reg.mhd : slides/ord/recRegStack.out
-slides/ord/reg/%_reg.mhd : slides/%_0001.czi  # expecting same pixel size for all CZIs
+slides/ord/reg_%/$(BN)_reg.mhd : slides/ord/recRegStack_%.out
+slides/ord/reg_%/$(BN)_reg.mhd : slides/0001.czi  # expecting same pixel size for all CZIs
 	xy_r=` BF_MAX_MEM=1g showinf  -option zeissczi.attachments false  -no-upgrade -nopix $< | awk  '/Scaling.Distance.Value/ {printf("%e ", $$3)}' ` ; \
 	list=` cd $(dir $@) ; ls -1 *.tif ` ; \
 	numb=` echo "$$list" | wc -l ` ; \
@@ -255,9 +255,11 @@ all.slicesOrdered : slides/slideOrder.lst
 
 %.xf %.siz : %.png slides/skipImgs.lst # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
 	if [ -n "$(BACKWARDS)" ]; then \
-	fi=`find $(dir $<) -name '*[0-9].png' | grep -v -f slides/skipImgs.lst | sort | grep -A1 $< | sed -n '2s/\\.png//p' | sed 's|ord/|ord/reg/|' ` ; \
+	fi=`find $(dir $<) -name '*[0-9].png' | grep -v -f slides/skipImgs.lst | sort | grep -A1 $< | sed -n '2s/\\.png//p' | sed 's|.*/||' ` ; \
+	fi=`find $(dir $<) -name $fi ` ; \
 	else \
-	fi=`find $(dir $<) -name '*[0-9].png' | grep -v -f slides/skipImgs.lst | sort | grep -B1 $< | sed -n '1s/\\.png//p' | sed 's|ord/|ord/reg/|' ` ; \
+	fi=`find $(dir $<) -name '*[0-9].png' | grep -v -f slides/skipImgs.lst | sort | grep -B1 $< | sed -n '1s/\\.png//p' | sed 's|.*/||' ` ; \
+	fi=`find $(dir $<) -name $fi ` ; \
 	fi ; \
 	mi=`echo $< | sed 's/\\.png//'` ; \
 	echo "$$fi $$mi" ; \
