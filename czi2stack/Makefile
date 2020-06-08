@@ -117,7 +117,7 @@ slides/ord/recRegStack_%.out : parameterFile.txt # parameterFile_rigid.txt param
 	" recRegStack.py -i $(RANGE_$*) -o reg_$*/ -p $(addprefix ../../,$(filter parameterFile%.txt,$^)) -m 1000 2000 1000 2000 -n 32 -s $(START_$*) -S $$skipSlices -f -b " | tee $@
 
 recRegStack_%.dat : recRegStack_%.out
-	awk 'match($$4, /[0-9]+/) {print substr($$4, RSTART, RLENGTH), $$(NF-1), $$0 ~ "[^pf].txt"?1:0, $$0 ~ "pf.txt"?1:0 }' $< > $@ # https://www.gnu.org/software/gawk/manual/html_node/String-Functions.html#index-match_0028_0029-function
+	awk 'match($$4, /[0-9]{6}/) {print substr($$4, RSTART, RLENGTH), $$(NF-1), $$0 ~ "[^pf].txt"?1:0, $$0 ~ "pf.txt"?1:0 }' $< > $@ # https://www.gnu.org/software/gawk/manual/html_node/String-Functions.html#index-match_0028_0029-function
 
 define GNUPLOT_CMD
 set terminal svg enhanced font "arial,20" size 1000,3000
