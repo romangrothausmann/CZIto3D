@@ -164,8 +164,8 @@ recRegStack_%.svg : recRegStack_%.dat reg_%/$(BN)_reg_smROI_rsi_8b_y@1500_cr.png
 	sed -i -n '/viewBox=/{x;d;};1h;1!{x;p;};${x;p;}' $@ `# delete line before match ` ; \
 	sed -i "s|viewBox=.*\$$|$${VAL}|" $@ # adjust SVG viewbox for typesetting with latex ;-)
 
-slides/ord/reg_%/$(BN)_reg.mhd : slides/ord/recRegStack_%.out
-slides/ord/reg_%/$(BN)_reg.mhd : slides/0001.czi  # expecting same pixel size for all CZIs
+# dep. spec. not workign as expected this way: slides/ord/reg_%/$(BN)_reg.mhd : slides/ord/recRegStack_%.out
+slides/ord/reg_%/$(BN)_reg.mhd : slides/0001.czi slides/ord/recRegStack_%.out # expecting same pixel size for all CZIs
 	xy_r=` BF_MAX_MEM=1g showinf  -option zeissczi.attachments false  -no-upgrade -nopix $< | awk  '/Scaling.Distance.Value/ {printf("%e ", $$3)}' ` ; \
 	list=` cd $(dir $@) ; ls -1 *.tif ` ; \
 	numb=` echo "$$list" | wc -l ` ; \
