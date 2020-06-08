@@ -62,6 +62,10 @@ extent?=  6000 6000
 w=$(word 1, $(extent))
 h=$(word 2, $(extent))
 
+RANGE_01= *_{109..118}*.png
+
+START_01= *_111_s02.png
+
 .PHONY : all clean dist-clean
 
 
@@ -110,7 +114,7 @@ slides/ord/recRegStack_%.out : slides/skipImgs.lst
 slides/ord/recRegStack_%.out : parameterFile.txt # parameterFile_rigid.txt parameterFile_affine.txt
 	skipSlices=` cd slides/ord/ && cat ../skipImgs.lst | xargs -I@ sh -c 'ls *@.png' | xargs ` && \
 	docker run -t --rm --user `id -u`:`id -g` --entrypoint /bin/bash -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/slides/ord/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:575bc43d -c \
-	" recRegStack.py -i 000{410..448}*.png -o reg_$*/ -p $(addprefix ../../,$(filter parameterFile%.txt,$^)) -m 1000 2000 1000 2000 -n 32 -s *_111_s02.png -S $$skipSlices -f -b " | tee $@
+	" recRegStack.py -i $(RANGE_$*) -o reg_$*/ -p $(addprefix ../../,$(filter parameterFile%.txt,$^)) -m 1000 2000 1000 2000 -n 32 -s $(START_$*) -S $$skipSlices -f -b " | tee $@
 
 recRegStack_%.dat : recRegStack_%.out
 	awk 'match($$4, /[0-9]+/) {print substr($$4, RSTART, RLENGTH), $$(NF-1), $$0 ~ "[^pf].txt"?1:0, $$0 ~ "pf.txt"?1:0 }' $< > $@ # https://www.gnu.org/software/gawk/manual/html_node/String-Functions.html#index-match_0028_0029-function
