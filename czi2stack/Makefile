@@ -113,7 +113,7 @@ slides/ord/recRegStack_%.out : all.slicesOrdered
 slides/ord/recRegStack_%.out : slides/skipImgs.lst
 slides/ord/recRegStack_%.out : parameterFile.txt # parameterFile_rigid.txt parameterFile_affine.txt
 	skipSlices=` cd slides/ord/ && cat ../skipImgs.lst | xargs -I@ sh -c 'ls *@.png' | xargs ` && \
-	docker run -t --rm --user `id -u`:`id -g` --entrypoint /bin/bash -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/slides/ord/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:575bc43d -c \
+	docker run -t --rm --user `id -u`:`id -g` --entrypoint /bin/bash -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/slides/ord/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:ded68b54 -c \
 	" recRegStack.py -i $(RANGE_$*) -o reg_$*/ -p $(addprefix ../../,$(filter parameterFile%.txt,$^)) -m 1000 2000 1000 2000 -n 32 -s $(START_$*) -S $$skipSlices -f -b " | tee $@
 
 recRegStack_%.dat : recRegStack_%.out
