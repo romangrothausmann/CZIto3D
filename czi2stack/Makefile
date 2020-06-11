@@ -164,7 +164,7 @@ endef
 export GNUPLOT_CMD
 
 recRegStack_%.svg : recRegStack_%.dat reg_%/$(BN)_reg_smROI_rsi_8b_y@1500_cr.png reg_%/$(BN)_reg_smROI_rsi_8b_x@1500_cr.png
-	VAL=` gnuplot -e "datafile='$<'; XZimgfile='$(word 2, $^)'; YZimgfile='$(word 3, $^)'; outfile='$@';" <(echo "$$GNUPLOT_CMD") 2> $(dir $@)/recRegStack_$*.stat ` ; \
+	VAL=` gnuplot -e "datafile='$<'; XZimgfile='$(word 2, $^)'; YZimgfile='$(word 3, $^)'; outfile='$@';" <(echo "$$GNUPLOT_CMD") 2> $(*D)/recRegStack_$(*F).stat ` ; \
 	sed -i -n '/viewBox=/{x;d;};1h;1!{x;p;};${x;p;}' $@ `# delete line before match ` ; \
 	sed -i "s|viewBox=.*\$$|$${VAL}|" $@ # adjust SVG viewbox for typesetting with latex ;-)
 
