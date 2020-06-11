@@ -99,7 +99,7 @@ slides/ord/recRegStack_%.out : all.slicesOrdered
 slides/ord/recRegStack_%.out : slides/skipImgs.lst
 slides/ord/recRegStack_%.out : parameterFile.txt # parameterFile_rigid.txt parameterFile_affine.txt
 	skipSlices=` cd slides/ord/ && cat ../skipImgs.lst | xargs -I@ sh -c 'ls *@.png' | xargs ` && \
-	docker run -t --rm --user `id -u`:`id -g` --entrypoint /bin/bash -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/slides/ord/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:575bc43d -c \
+	docker run -t --rm --user `id -u`:`id -g` --entrypoint /bin/bash -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/slides/ord/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:ded68b54 -c \
 	" recRegStack.py -i $(RANGE_$*) -o reg_$*/ -p $(addprefix ../../,$(filter parameterFile%.txt,$^)) -n 32 -s $(START_$*) -S $$skipSlices -f -b " | tee $@
 
 recRegStack_%.dat : recRegStack_%.out
@@ -173,7 +173,7 @@ slides/ord/reg_%/$(BN)_reg.mhd : slides/0001.czi slides/ord/recRegStack_%.out # 
 
 
 %_smROI.mha : %.mhd
-	std-mean_ROI_SBS $< $@  500 500 0  2500 2500 ` awk '/DimSize/ {print $$5}' $< `
+	std-mean_ROI_SBS $< $@  500 500
 
 %_rsi.mha : %.mha
 	resample-iso $+ $@ 100 1 1.5 # voxel size should equal slice thickness (z-depth)
