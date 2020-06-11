@@ -71,9 +71,10 @@ START_01= *_111_s02.png
 
 all : reg01
 
-reg% : slides/ord/reg_%/$(BN)_reg_smROI_rsi_8b.mha # normalized 3D stack
-reg% : slides/ord/reg_%/$(BN)_reg_smROI_pro-mean+z.png # projection
-reg% : slides/ord/recRegStack_%.svg # plot stats in relation to center slices along z-axis
+## pattern rules do not allow to spec. deps. with multiple rules (as is posible for explicit rules)
+reg% : slides/ord/reg_%/$(BN)_reg_smROI_rsi_8b.mha \
+	slides/ord/reg_%/$(BN)_reg_smROI_pro-mean+z.png \
+	slides/ord/recRegStack_%.svg
 	touch $@
 
 clean:
@@ -112,9 +113,9 @@ dist-clean : clean
 slides/slideOrder.lst : slides/ all.slices
 	ls -1 slides/*.png | sed 's|.*/||' > $@
 
-slides/ord/recRegStack_%.out : all.slicesOrdered
-slides/ord/recRegStack_%.out : slides/skipImgs.lst
-slides/ord/recRegStack_%.out : parameterFile.txt # parameterFile_rigid.txt parameterFile_affine.txt
+## pattern rules do not allow to spec. deps. with multiple rules (as is posible for explicit rules)
+slides/ord/recRegStack_%.out : all.slicesOrdered slides/skipImgs.lst \
+	parameterFile.txt # parameterFile_rigid.txt parameterFile_affine.txt
 	skipSlices=` cd slides/ord/ && cat ../skipImgs.lst | xargs -I@ sh -c 'ls *@.png' | xargs ` && \
 	docker run -t --rm --user `id -u`:`id -g` --entrypoint /bin/bash -v $$(pwd)/../../:/images -w /images/CZIto3D/czi2stack/slides/ord/ registry.gitlab.com/romangrothausmann/elastix_scripts/master:ded68b54 -c \
 	" recRegStack.py -i $(RANGE_$*) -o reg_$*/ -p $(addprefix ../../,$(filter parameterFile%.txt,$^)) -m 1000 2000 1000 2000 -n 32 -s $(START_$*) -S $$skipSlices -f -b " | tee $@
@@ -171,7 +172,7 @@ recRegStack_%.svg : recRegStack_%.dat reg_%/$(BN)_reg_smROI_rsi_8b_y@1500_cr.png
 	sed -i -n '/viewBox=/{x;d;};1h;1!{x;p;};${x;p;}' $@ `# delete line before match ` ; \
 	sed -i "s|viewBox=.*\$$|$${VAL}|" $@ # adjust SVG viewbox for typesetting with latex ;-)
 
-# dep. spec. not workign as expected this way: slides/ord/reg_%/$(BN)_reg.mhd : slides/ord/recRegStack_%.out
+## pattern rules do not allow to spec. deps. with multiple rules (as is posible for explicit rules)
 slides/ord/reg_%/$(BN)_reg.mhd : slides/0001.czi slides/ord/recRegStack_%.out # expecting same pixel size for all CZIs
 	xy_r=` BF_MAX_MEM=1g showinf  -option zeissczi.attachments false  -no-upgrade -nopix $< | awk  '/Scaling.Distance.Value/ {printf("%e ", $$3)}' ` ; \
 	list=` cd $(dir $@) ; ls -1 *.tif ` ; \
