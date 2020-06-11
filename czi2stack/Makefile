@@ -185,7 +185,7 @@ slides/ord/reg_%/$(BN)_reg.mhd : slides/0001.czi slides/ord/recRegStack_%.out # 
 
 
 %_smROI.mha : %.mhd
-	std-mean_ROI_SBS $< $@  500 500 0  2500 2500 ` awk '/DimSize/ {print $$5}' $< `
+	std-mean_ROI_SBS $< $@  500 500
 
 %_rsi.mha : %.mha
 	resample-iso $+ $@ 100 1 1.5 # voxel size should equal slice thickness (z-depth)
