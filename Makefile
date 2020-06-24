@@ -4,7 +4,7 @@ export HTTPSproxy?=""
 
 
 ### setting default paths of external libraries
-ITKLIB?=/opt/itk-4.12.2/lib/cmake/ITK-4.12
+ITKLIB?=/opt/itk-5.0.1/lib/cmake/ITK-5.0
 ### setting default paths of external programs
 
 ## path to submodules
