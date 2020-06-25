@@ -3,7 +3,7 @@
 ## output of parallel
 *.out
 ## do not ignore
-!recRegStack.out 
+!recRegStack*.out 
 ## links to orig CZIs
 *.czi
 ## MF empty target for thump-nail TIF extraction
