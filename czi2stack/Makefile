@@ -217,7 +217,7 @@ all.thumbs : slides/ all.info
 	touch $@
 
 all.slices : slides/ all.thumbs
-	ls $</*.tif \
+	ls $</*.tif | grep -v -f slides/skipImgs.lst \
 	| parallel --eta -j16 '$(MAKE) -j1 {.}.slices &> {}.slices.out' # -j16 becuase %.slices already mostly runs multiple instances of  bfconvert that are at least dual-threaded
 	touch $@
 
