@@ -264,16 +264,16 @@ all.slicesOrdered : slides/slideOrder.lst
 %.xf %.siz : %.png slides/skipImgs.lst # $$(call int_dec,%) ## gmsl function not sufficient (not only main number changes!)
 	if [ -n "$(BACKWARDS)" ]; then \
 	fi=`find $(dir $<) -name '*[0-9].png' | grep -v -f slides/skipImgs.lst | sort | grep -A1 $< | sed -n '2s/\\.png//p' | sed 's|.*/||' ` ; \
-	fi=`find $(dir $<) -name $fi ` ; \
+	fi=`find $(dir $<) -name "$$fi.tif" ` ; \
 	else \
 	fi=`find $(dir $<) -name '*[0-9].png' | grep -v -f slides/skipImgs.lst | sort | grep -B1 $< | sed -n '1s/\\.png//p' | sed 's|.*/||' ` ; \
-	fi=`find $(dir $<) -name $fi ` ; \
+	fi=`find $(dir $<) -name "$$fi.tif" ` ; \
 	fi ; \
 	mi=`echo $< | sed 's/\\.png//'` ; \
 	echo "$$fi $$mi" ; \
 	$(convertIM) $$mi.png -grayscale Average $$mi.tif && \
-	tif2mrc $$fi.tif $$mi.tif $<.mrc && \
-	$(convertIM) $$fi.tif -format '%[fx:w/2] %[fx:h/2]\n' info: > $*.siz && \
+	tif2mrc $$fi $$mi.tif $<.mrc && \
+	$(convertIM) $$fi -format '%[fx:w/2] %[fx:h/2]\n' info: > $*.siz && \
 	rm $$mi.tif
 	$(VGLRUN) midas -D -s 0,3000 $<.mrc $*.xf # -D: do not run in background
 	rm $<.mrc # MRC only created for midas
