@@ -66,7 +66,7 @@ RANGE_01= *_{109..118}*.png
 
 START_01= *_111_s02.png
 
-.PHONY : all clean dist-clean
+.PHONY : all clean dist-clean adjIMconf
 
 
 all : reg01
@@ -85,6 +85,12 @@ dist-clean : clean
 	-cd slides/ && \
 	rm -v *.ctr *.lst *.txt
 	-rm -rf slides/ord/
+
+adjIMconf: /etc/ImageMagick-6/policy.xml # adjust memory and size limits for IM
+	sed -i 's/name="memory" value=".*"/name="memory" value="20GiB"/' $<
+	sed -i 's/name="map" value=".*"/name="map" value="20GiB"/' $<
+	sed -i 's/name="width" value=".*"/name="width" value="50KP"/' $<
+	sed -i 's/name="height" value=".*"/name="height" value="50KP"/' $<
 
 
 %.info : %.czi
